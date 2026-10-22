@@ -1,8 +1,8 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="robots" content="noindex"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Singapore Women's Sabre Rankings</title>
 <style>
-:root{--bg:#fff;--fg:#1a1d21;--mu:#6b7280;--bd:#e5e7eb;--ac:#0b6e4f;--up:#15803d;--dn:#b91c1c;--hi:#ecfdf5;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14171a;--fg:#e8eaed;--mu:#9aa0a6;--bd:#2c3136;--ac:#4ade80;--up:#4ade80;--dn:#f87171;--hi:#1d2a24}}
-:root[data-theme="dark"]{--bg:#14171a;--fg:#e8eaed;--mu:#9aa0a6;--bd:#2c3136;--ac:#4ade80;--up:#4ade80;--dn:#f87171;--hi:#1d2a24}
+:root{--bg:#fff;--fg:#1a1d21;--mu:#6b7280;--bd:#e5e7eb;--ac:#0b6e4f;--up:#15803d;--dn:#b91c1c;--hi:#ecfdf5;--gr:#f1f3f5;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14171a;--fg:#e8eaed;--mu:#9aa0a6;--bd:#2c3136;--ac:#4ade80;--up:#4ade80;--dn:#f87171;--hi:#1d2a24;--gr:#23282d}}
+:root[data-theme="dark"]{--bg:#14171a;--fg:#e8eaed;--mu:#9aa0a6;--bd:#2c3136;--ac:#4ade80;--up:#4ade80;--dn:#f87171;--hi:#1d2a24;--gr:#23282d}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
 main{max-width:860px;margin:0 auto;padding:20px 16px 40px}
@@ -11,7 +11,7 @@ button{font:inherit;background:none;color:var(--fg);border:1px solid var(--bd);b
 button.on{background:var(--ac);color:var(--bg);border-color:var(--ac)}
 input[type=search]{font:inherit;width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--fg);margin-bottom:8px}
 .card{border:1px solid var(--bd);border-radius:12px;padding:12px;margin:12px 0}.hd{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:8px}.hd h2{margin:0}
-.k{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin:12px 0}.k div{border:1px solid var(--bd);border-radius:12px;padding:10px 12px}.k b{display:block;font-size:18px}.k span{color:var(--mu);font-size:12px;display:block}
+.k{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin:12px 0}.k div{border:1px solid var(--bd);border-radius:12px;padding:10px 12px}.k b{display:block;font-size:18px}.k span{color:var(--mu);font-size:12px;display:block}.pc{background:var(--gr)}
 .wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:14px}
 th,td{padding:6px 8px;text-align:left;border-bottom:1px solid var(--bd);white-space:nowrap}th{color:var(--mu);font-weight:600;font-size:12px}th[onclick]{cursor:pointer}
 tr{cursor:pointer}tr.on{background:var(--hi)}.up{color:var(--up)}.dn{color:var(--dn)}.ax{font-size:11px;fill:var(--mu)}svg text{font-family:inherit}.d{opacity:.5}
@@ -58,9 +58,9 @@ return`<h2 style="margin-top:14px">All competitions (${s.length})</h2><p class="
 function kpi(){const{f,L}=G,od=f.map((x,i)=>i).sort((a,b)=>L.r[a]-L.r[b]||L.t[b]-L.t[a]),tp=od.slice(0,10),t3=od.slice(0,3);G.od=od;G.tp=tp;
 const s0=D.season+"-06-01",s1=(D.season+1)+"-06-01",pl=(n,w)=>n+" "+w+(n==1?"":"s");
 const card=(i,k)=>{const x=f[i],e=((P[x[0]]||{}).e||[]).filter(v=>v[0]>=s0&&v[0]<s1&&v[4].includes(C[cat])&&!/^[MW][SFE] \w+ \d{4}-\d{4}$/.test(v[1])),w=e.filter(v=>v[5]==1).length,pd=e.filter(v=>v[5]>0&&v[5]<=3).length,n=x[4].filter(v=>v>0).length,nx=od[k+1];
-return`<div style="cursor:pointer" onclick="pick(${x[0]})"><span>#${L.r[i]}${x[2]?" · "+x[2]:""}</span><b>${nm(x)}</b><span>${L.t[i].toLocaleString()} pts · ${Math.round(100*x[3]/L.t[i])}% base</span>${n?`<span>${pl(n,"scoring event")}${e.length?" · "+pl(w,"win")+" · "+pl(pd,"podium"):""}</span>`:`<span style="color:var(--dn)">No events this season</span>`}${nx!=null?`<span>${(L.t[i]-L.t[nx]).toLocaleString()} pts ahead of #${L.r[nx]}</span>`:""}</div>`};
+return`<div class="pc" style="cursor:pointer" onclick="pick(${x[0]})"><span>#${L.r[i]}${x[2]?" · "+x[2]:""}</span><b>${nm(x)}</b><span>${L.t[i].toLocaleString()} pts · ${Math.round(100*x[3]/L.t[i])}% base</span>${n?`<span>${pl(n,"scoring event")}${e.length?" · "+pl(w,"win")+" · "+pl(pd,"podium"):""}</span>`:`<span style="color:var(--dn)">No events this season</span>`}${nx!=null?`<span>${(L.t[i]-L.t[nx]).toLocaleString()} pts ahead of #${L.r[nx]}</span>`:""}</div>`};
 const t4=x=>[...x[4]].sort((a,b)=>b-a).slice(0,4).reduce((a,b)=>a+b,0),eo=f.map((x,i)=>i).sort((a,b)=>t4(f[b])-t4(f[a])).slice(0,3),same=eo.every(i=>t3.includes(i));
-$("kpi").innerHTML=t3.map((i,k)=>card(i,k)).join("")+(od[3]!=null?`<div><span>Cut line (#3 vs #4)</span><b>${(L.t[od[2]]-L.t[od[3]]).toLocaleString()} pts</b><span>#4 is ${nm(f[od[3]])}</span></div>`:"")+`<div><span>Top 3 on event scores alone (no base points)</span>${eo.map((i,k)=>`<span style="color:var(--fg)">${k+1}. ${nm(f[i])} · ${t4(f[i]).toLocaleString()}</span>`).join("")}<span>${same?"Same fencers as the current top 3":"Differs from the current top 3"}</span></div>`}
+$("kpi").innerHTML=t3.map((i,k)=>card(i,k)).join("")+(od[3]!=null?`<div><span>Cut line (#3 vs #4)</span><b>${(L.t[od[2]]-L.t[od[3]]).toLocaleString()} pts</b><span>#4 is ${nm(f[od[3]])}</span></div>`:"")+`<div><span>Top 3 on event scores alone (no base points)</span>${eo.map((i,k)=>`<span style="color:var(--fg)">${k+1}. ${nm(f[i])} · ${t4(f[i]).toLocaleString()}</span>`).join("")}<span>${same?"Same fencers as the current top 3":"Differs from the current top 3"}</span></div>`+`<div><span>Top 8</span><span style="columns:2;column-gap:12px">${od.slice(0,8).map((i,k)=>`<span style="color:var(--fg)" title="${nm(f[i])}">${k+1}. ${f[i][1]}</span>`).join("")}</span></div>`}
 function tbl(){const{f,S,L,od}=G,q=$("q").value.toLowerCase(),gap=i=>{const a=L.t.filter(v=>v>L.t[i]);return a.length?Math.min(...a)-L.t[i]:0};
 const spark=i=>{const r=S.map(s=>s.r[i]);if(r.length<2)return"";const a=Math.max(...r),b=Math.min(...r),w=64,h=18;return`<svg width="${w}" height="${h}"><polyline fill="none" stroke="currentColor" stroke-width="1.5" points="${r.map((v,k)=>(k*w/(r.length-1)).toFixed(1)+","+(a==b?h/2:2+(v-b)*(h-4)/(a-b)).toFixed(1)).join(" ")}"/></svg>`};
 const cols=[["#",i=>L.r[i]],["Fencer",i=>nm(f[i]).toLowerCase()],["Club",i=>f[i][2]],["Points",i=>L.t[i]],["Base %",i=>L.t[i]?f[i][3]/L.t[i]:0],["Trend",null],["Gap to above",gap]];
