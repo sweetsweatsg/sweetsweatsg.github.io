@@ -23,13 +23,13 @@ tr{cursor:pointer}tr.on{background:var(--hi)}.up{color:var(--up)}.dn{color:var(-
 <div id="cat"><div id="kpi" class="k"></div>
 <div class="card"><input id="q" type="search" placeholder="Search fencer or club" oninput="tbl()"><div class="wrap"><table id="tb"></table></div></div>
 <div class="card"><div class="hd"><h2>Rank history</h2><div><button id="m1" onclick="mode='event';render()">By event (estimated)</button><button id="m2" onclick="mode='year';render()">By year (season-end)</button></div></div>
-<label class="mu"><input type="checkbox" id="hi" onchange="hideIn=this.checked;chart()"> Hide fencers with no events this season</label>
-<div id="chart" class="wrap"></div><p class="mu" id="cn"></p></div>
+<label class="mu"><input type="checkbox" id="hi" onchange="hideIn=this.checked;chart()"> Hide fencers with no events this season</label> <label class="mu" id="spl" style="margin-left:12px"><input type="checkbox" id="sp" checked onchange="showPast=this.checked;chart()"> Show past participants</label>
+<div id="chart" class="wrap"></div><p class="mu" id="cn"></p><div id="past"></div></div>
 <div class="card"><h2>Points: base vs earned (top 10)</h2><div id="bars"></div></div>
 <div class="card"><h2>Clubs and schools, top 10</h2><div id="club"></div></div></div>
-<p class="mu">Total = best 4 event scores + base points. Base points shrink over time, so "By event" applies today's base to earlier dates and is only an estimate. "By year" shows each fencer's final rank at the end of past seasons. Dashed lines = no events yet this season (ranking is base points only).</p>
+<p class="mu">Total = best 4 event scores + base points. Base points shrink over time, so "By event" applies today's base to earlier dates and is only an estimate. "By year" shows each fencer's final rank at the end of past seasons. Dashed lines = no events yet this season (ranking is base points only). Dotted lines (By year) = past participants not ranked in this level now.</p>
 </main><script>
-let D={cadet:{ev:[],f:[]},junior:{ev:[],f:[]},senior:{ev:[],f:[]}},H=[],P={},cat="cadet",sel=null,mode="event",hideIn=false,sk=0,sd=1,G;
+let D={cadet:{ev:[],f:[]},junior:{ev:[],f:[]},senior:{ev:[],f:[]}},H=[],P={},showPast=true,cat="cadet",sel=null,mode="event",hideIn=false,sk=0,sd=1,G;
 const C={cadet:"Cadet",junior:"Junior",senior:"Senior"},K=["#0b6e4f","#2563eb","#d97706","#9333ea","#dc2626","#0891b2","#65a30d","#db2777","#64748b","#92400e","#ca8a04"];
 const $=id=>document.getElementById(id),fm=d=>new Date(d).toLocaleDateString("en-GB",{day:"numeric",month:"short"}),nm=x=>x[5]||x[1],idle=x=>!x[4].some(v=>v>0);
 function calc(c){const{ev,f}=D[c],S=[];for(let k=0;k<=ev.length;k++){const t=f.map(x=>x[4].slice(0,k).sort((a,b)=>b-a).slice(0,4).reduce((a,b)=>a+b,0)+x[3]);S.push({t,r:t.map(v=>1+t.filter(u=>u>v).length)})}return S}
@@ -51,6 +51,7 @@ if(q>=0){const x=f[q],pt=x[4],tc=pt.map((v,i)=>[v,i]).sort((a,b)=>b[0]-a[0]).sli
 dt=`<p class="mu">#${L.r[q]} here · ${L.t[q].toLocaleString()} pts · ${u.length?Math.min(...u)-L.t[q]+" behind the next rank up":"leading"}${d.length?" · "+(L.t[q]-Math.max(...d))+" ahead of the next down":""} · a new result raises her total only if it scores more than her lowest counted score (${lo}).</p><p class="mu">Total = best 4 scores + base points. Scores outside her best 4 are shown faded.</p><div class="wrap"><table><tr><th>Event<th>Date<th>Score<th>In her total?</tr>`+ev.map((e,i)=>`<tr style="cursor:default"><td>${e[1]}<td>${fm(e[0])}<td class="${tc.includes(i)?"":"d"}">${pt[i]||"–"}<td>${tc.includes(i)&&pt[i]?"✓ Best 4":pt[i]?"Not counted":""}`).join("")+`<tr style="cursor:default"><td>Base points (carried over, shrinks daily)<td><td>${x[3]}<td>✓ Always added</tr></table></div>`}
 else dt=`<p class="mu">Not ranked in this level.</p>`;
 p=`<div class="card"><b>${nm(a)}</b> — ${info} <button onclick="pick(sel)" style="margin-left:8px">Clear</button><button onclick="navigator.clipboard.writeText(location.href)">Copy link</button>${dt}${hist(sel)}</div>`}
+else if(sel&&P[sel]&&P[sel].n)p=`<div class="card"><b>${P[sel].n[1]}</b> — not ranked this season <button onclick="pick(sel)" style="margin-left:8px">Clear</button>${hist(sel)}</div>`;
 $("sel").innerHTML=p}
 function hist(id){const e=((P[id]||{}).e||[]).filter(x=>!/^[MW][SFE] \w+ \d{4}-\d{4}$/.test(x[1]));if(!e.length)return"";const s=[...e].sort((a,b)=>a[0]<b[0]?1:-1),pod=s.filter(x=>x[5]>0&&x[5]<=3).length,best=Math.min(...s.map(x=>x[5]).filter(v=>v>0));
 return`<h2 style="margin-top:14px">All competitions (${s.length})</h2><p class="mu">${pod} podium finish${pod==1?"":"es"} · best finish ${best}${s.some(x=>!x[2].startsWith("Singapore"))?" · includes overseas events":""}</p><div class="wrap" style="max-height:360px;overflow:auto"><table><tr><th>Date<th>Competition<th>Where<th>Category<th>Counts for<th>Place<th>Points</tr>`+s.map(x=>`<tr style="cursor:default"><td>${x[0]}<td>${x[1]}<td>${x[2]}<td>${x[3].replace("Individual ","")}<td>${x[4]}<td>${x[5]}<td>${x[6]}`).join("")+`</table></div>`}
@@ -65,22 +66,29 @@ $("tb").innerHTML="<tr>"+cols.map((c,j)=>c[1]?`<th onclick="srt(${j})">${c[0]}${
 function series(){const{ev,f,S}=G;
 if(mode=="event"){const R={},T={};f.forEach((x,i)=>{R[x[0]]=S.map(s=>s.r[i]);T[x[0]]=S.map(s=>s.t[i])});return{lab:["Start",...ev.map(e=>e[1])],tip:["Base points only",...ev.map(e=>fm(e[0]))],R,T,note:"Estimate: today's base points are applied to earlier dates, but base points shrink over time, so earlier ranks are approximate."}}
 const AG=C[cat],ok=a=>a[1]==AG&&a[2]=="Sabre"&&a[3]=="Female",yr=new Set();
-f.forEach(x=>((P[x[0]]||{}).r||[]).forEach(a=>{if(ok(a))yr.add(a[0])}));
-const ys=[...yr].sort((a,b)=>a-b);ys.push(D.season);const R={},T={};
-f.forEach((x,i)=>{const rr=(P[x[0]]||{}).r||[],pk=y=>rr.find(a=>a[0]==y&&ok(a));
-R[x[0]]=ys.map(y=>y==D.season?G.L.r[i]:(pk(y)||[])[4]||null);T[x[0]]=ys.map(y=>y==D.season?G.L.t[i]:(pk(y)||[])[5]||null)});
-return{lab:ys.map(y=>y+"–"+String(y+1).slice(2)+(y==D.season?" (so far)":"")),tip:ys.map(y=>y==D.season?"Current ranking":"Season-end ranking"),R,T,note:"Season-end ranks from fencer profiles. The last point is today's ranking and keeps changing. A gap means she wasn't ranked in this age group that season."}}
-function chart(){const{f}=G,m=series(),N=m.lab.length;$("m1").className=mode=="event"?"on":"";$("m2").className=mode=="year"?"on":"";$("cn").textContent=m.note;
+Object.values(P).forEach(p=>(p.r||[]).forEach(a=>{if(ok(a))yr.add(a[0])}));
+const ys=[...yr].filter(y=>y<D.season).sort((a,b)=>a-b);ys.push(D.season);const R={},T={},ext=[];
+const get=(rr,y,k)=>((rr.find(a=>a[0]==y&&ok(a))||[])[k])||null;
+f.forEach((x,i)=>{const rr=(P[x[0]]||{}).r||[];R[x[0]]=ys.map(y=>y==D.season?G.L.r[i]:get(rr,y,4));T[x[0]]=ys.map(y=>y==D.season?G.L.t[i]:get(rr,y,5))});
+const here=new Set(f.map(x=>x[0])),cur=new Set(Object.values(D).flatMap(d=>d.f||[]).map(x=>x[0]));
+Object.entries(P).forEach(([k,p])=>{const id=+k,rr=(p.r||[]).filter(ok);if(here.has(id)||!rr.length||!p.n)return;
+R[id]=ys.map(y=>y==D.season?null:get(rr,y,4));T[id]=ys.map(y=>y==D.season?null:get(rr,y,5));
+const rs=rr.map(a=>a[4]).filter(v=>v>0),yy=rr.map(a=>a[0]);
+ext.push([id,p.n[0],p.n[2],0,[],p.n[1],rs.length?Math.min(...rs):99,cur.has(id)?"moved up":"not active",Math.min(...yy),Math.max(...yy)])});
+return{lab:ys.map(y=>y+"–"+String(y+1).slice(2)+(y==D.season?" (so far)":"")),tip:ys.map(y=>y==D.season?"Current ranking":"Season-end ranking"),R,T,ext,note:"Season-end ranks from fencer profiles. The last point is today's ranking and keeps changing. A gap means she wasn't ranked in this age group that season. Dotted lines are past participants who are not ranked in this level now (\"moved up\" = now ranked in another level)."}}
+function pastTbl(e){e=[...e].sort((a,b)=>a[6]-b[6]||b[9]-a[9]);const sy=y=>y+"–"+String(y+1).slice(2);
+return`<h2 style="margin-top:12px">Past participants (${e.length}) <span class="mu">not ranked in ${C[cat]} this season</span></h2><div class="wrap" style="max-height:300px;overflow:auto"><table><tr><th>Fencer<th>Club<th>Ranked<th>Best finish<th>Status</tr>`+e.map(x=>`<tr class="${x[0]==sel?"on":""}" onmouseenter="hv(${x[0]})" onmouseleave="hv(null)" onclick="pick(${x[0]})"><td>${x[5]}<td>${x[2]}<td>${sy(x[8])}${x[8]==x[9]?"":" → "+sy(x[9])}<td>${x[6]}<td>${x[7]}`).join("")+`</table></div>`}
+function chart(){const{f}=G,m=series(),N=m.lab.length,ext=mode=="year"&&showPast?(m.ext||[]):[],ff=f.concat(ext),nf=f.length;$("m1").className=mode=="event"?"on":"";$("m2").className=mode=="year"?"on":"";$("cn").textContent=m.note;$("spl").style.display=mode=="year"?"":"none";$("past").innerHTML=ext.length?pastTbl(ext):"";
 if(N<2){$("chart").innerHTML=`<p class="mu">${mode=="year"?"Season history appears after the next daily update.":"No events recorded yet this season."}</p>`;return}
-const fin=i=>(m.R[f[i][0]]||[])[N-1],show=f.map((x,i)=>i).filter(i=>{const r=fin(i);return((r&&r<=10)||f[i][0]==sel)&&!(hideIn&&idle(f[i])&&f[i][0]!=sel)});
+const fin=i=>(m.R[ff[i][0]]||[])[N-1],show=ff.map((x,i)=>i).filter(i=>{const x=ff[i],r=fin(i);return((i>=nf?x[6]<=8:(r&&r<=10))||x[0]==sel)&&!(hideIn&&i<nf&&idle(x)&&x[0]!=sel)});
 if(!show.length){$("chart").innerHTML="";return}
-const mx=Math.max(...show.flatMap(i=>(m.R[f[i][0]]||[]).filter(v=>v)));
-const W=760,H2=380,ml=34,mg=135,mt=16,mb=84,X=i=>ml+i*(W-ml-mg)/(N-1),Y=r=>mt+(mx>1?(r-1)*(H2-mt-mb)/(mx-1):0);
+const mx=Math.max(...show.flatMap(i=>(m.R[ff[i][0]]||[]).filter(v=>v)));
+const W=800,H2=380,ml=34,mg=175,mt=16,mb=84,X=i=>ml+i*(W-ml-mg)/(N-1),Y=r=>mt+(mx>1?(r-1)*(H2-mt-mb)/(mx-1):0);
 let s=`<svg viewBox="0 0 ${W} ${H2}" width="100%" style="min-width:640px" role="img" aria-label="Rank history">`;
 for(let i=0;i<N;i++){const y=H2-mb+18;s+=`<line x1="${X(i)}" y1="${mt}" x2="${X(i)}" y2="${H2-mb}" stroke="var(--bd)"/><text x="${X(i)}" y="${y}" transform="rotate(40 ${X(i)} ${y})" class="ax"><title>${m.tip[i]}</title>${m.lab[i]}</text>`}
 for(let r=1;r<=mx;r+=mx>12?2:1)s+=`<text x="${ml-10}" y="${Y(r)+4}" text-anchor="end" class="ax">${r}</text>`;
-show.forEach((i,j)=>{const x=f[i],id=x[0],hot=id==sel,col=K[j%K.length],pt=m.R[id].map((r,k)=>r?[X(k),Y(r),k]:null).filter(Boolean),l=pt[pt.length-1];
-s+=`<g data-id="${id}" opacity="${sel&&!hot?0.15:1}" style="cursor:pointer" onclick="pick(${id})" onmouseenter="hv(${id})" onmouseleave="hv(null)"><polyline fill="none" stroke="${col}" stroke-width="${hot?4:2}"${idle(x)?' stroke-dasharray="6 4"':""} points="${pt.map(a=>a[0]+","+a[1]).join(" ")}"/>`+pt.map(a=>`<circle cx="${a[0]}" cy="${a[1]}" r="${hot?5:3}" fill="${col}"><title>${nm(x)} · rank ${m.R[id][a[2]]} · ${m.T[id][a[2]]} pts · ${m.tip[a[2]]}</title></circle>`).join("")+`<text x="${l[0]+8}" y="${l[1]+4}" font-size="11" fill="${col}"><title>${nm(x)}</title>${x[1]}${idle(x)?" ·":""}</text></g>`});
+show.forEach((i,j)=>{const x=ff[i],id=x[0],hot=id==sel,col=K[j%K.length],pt=(m.R[id]||[]).map((r,k)=>r?[X(k),Y(r),k]:null).filter(Boolean),old=i>=nf;if(!pt.length)return;const l=pt[pt.length-1];
+s+=`<g data-id="${id}" opacity="${sel&&!hot?0.15:1}" style="cursor:pointer" onclick="pick(${id})" onmouseenter="hv(${id})" onmouseleave="hv(null)"><polyline fill="none" stroke="${col}" stroke-width="${hot?4:2}"${old?' stroke-dasharray="2 5"':idle(x)?' stroke-dasharray="6 4"':""} points="${pt.map(a=>a[0]+","+a[1]).join(" ")}"/>`+pt.map(a=>`<circle cx="${a[0]}" cy="${a[1]}" r="${hot?5:3}" fill="${col}"><title>${nm(x)} · rank ${m.R[id][a[2]]} · ${m.T[id][a[2]]} pts · ${m.tip[a[2]]}</title></circle>`).join("")+`<text x="${l[0]+8}" y="${l[1]+4}" font-size="11" fill="${col}"><title>${nm(x)}</title>${x[1]}${old?" ("+x[7]+")":idle(x)?" ·":""}</text></g>`});
 $("chart").innerHTML=s+"</svg>"}
 function bars(){const{f,L,tp}=G,mx=Math.max(...tp.map(i=>L.t[i]));let b=`<svg viewBox="0 0 700 ${tp.length*26+6}" width="100%">`;
 tp.forEach((i,j)=>{const y=j*26+4,w=v=>v/mx*480,b0=f[i][3],ea=L.t[i]-b0;b+=`<text x="0" y="${y+14}" font-size="12" fill="currentColor"><title>${nm(f[i])}</title>${L.r[i]}. ${f[i][1]}</text><rect x="150" y="${y}" width="${w(b0)}" height="18" fill="#94a3b8"/><rect x="${150+w(b0)}" y="${y}" width="${w(ea)}" height="18" fill="var(--ac)"/><text x="${156+w(L.t[i])}" y="${y+14}" font-size="11" class="ax">${L.t[i].toLocaleString()}</text>`});
