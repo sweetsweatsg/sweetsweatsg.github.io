@@ -11,7 +11,7 @@ button{font:inherit;background:none;color:var(--fg);border:1px solid var(--bd);b
 button.on{background:var(--ac);color:var(--bg);border-color:var(--ac)}
 input[type=search]{font:inherit;width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--fg);margin-bottom:8px}
 .card{border:1px solid var(--bd);border-radius:12px;padding:12px;margin:12px 0}.hd{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:8px}.hd h2{margin:0}
-.k{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}.k div{border:1px solid var(--bd);border-radius:12px;padding:10px 12px}.k b{display:block;font-size:18px}.k span{color:var(--mu);font-size:12px;display:block}
+.k{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin:12px 0}.k div{border:1px solid var(--bd);border-radius:12px;padding:10px 12px}.k b{display:block;font-size:18px}.k span{color:var(--mu);font-size:12px;display:block}
 .wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:14px}
 th,td{padding:6px 8px;text-align:left;border-bottom:1px solid var(--bd);white-space:nowrap}th{color:var(--mu);font-weight:600;font-size:12px}th[onclick]{cursor:pointer}
 tr{cursor:pointer}tr.on{background:var(--hi)}.up{color:var(--up)}.dn{color:var(--dn)}.ax{font-size:11px;fill:var(--mu)}svg text{font-family:inherit}.d{opacity:.5}
@@ -20,7 +20,7 @@ tr{cursor:pointer}tr.on{background:var(--hi)}.up{color:var(--up)}.dn{color:var(-
 <h1>Singapore women's sabre rankings</h1>
 <p class="mu"><span id="asof">Loading…</span> · tap a fencer to follow her across the chart and all three levels</p>
 <div id="tabs"></div><div id="sel"></div>
-<div id="cat"><div id="kpi" class="k"></div>
+<div id="cat"><div id="kpi" class="k"></div><p class="mu" style="margin-top:-4px">Top 3 by ranking points. Selection rules (eligibility, minimum events, etc.) are not applied here. Base points shrink every day, so rankings that lean on them will change.</p>
 <div class="card"><input id="q" type="search" placeholder="Search fencer or club" oninput="tbl()"><div class="wrap"><table id="tb"></table></div></div>
 <div class="card"><div class="hd"><h2>Rank history</h2><div><button id="m1" onclick="mode='event';render()">By event (estimated)</button><button id="m2" onclick="mode='year';render()">By year (season-end)</button></div></div>
 <label class="mu"><input type="checkbox" id="hi" onchange="hideIn=this.checked;chart()"> Hide fencers with no events this season</label> <label class="mu" id="spl" style="margin-left:12px"><input type="checkbox" id="sp" checked onchange="showPast=this.checked;chart()"> Show past participants</label>
@@ -55,8 +55,12 @@ else if(sel&&P[sel]&&P[sel].n)p=`<div class="card"><b>${P[sel].n[1]}</b> — not
 $("sel").innerHTML=p}
 function hist(id){const e=((P[id]||{}).e||[]).filter(x=>!/^[MW][SFE] \w+ \d{4}-\d{4}$/.test(x[1]));if(!e.length)return"";const s=[...e].sort((a,b)=>a[0]<b[0]?1:-1),pod=s.filter(x=>x[5]>0&&x[5]<=3).length,best=Math.min(...s.map(x=>x[5]).filter(v=>v>0));
 return`<h2 style="margin-top:14px">All competitions (${s.length})</h2><p class="mu">${pod} podium finish${pod==1?"":"es"} · best finish ${best}${s.some(x=>!x[2].startsWith("Singapore"))?" · includes overseas events":""}</p><div class="wrap" style="max-height:360px;overflow:auto"><table><tr><th>Date<th>Competition<th>Where<th>Category<th>Counts for<th>Place<th>Points</tr>`+s.map(x=>`<tr style="cursor:default"><td>${x[0]}<td>${x[1]}<td>${x[2]}<td>${x[3].replace("Individual ","")}<td>${x[4]}<td>${x[5]}<td>${x[6]}`).join("")+`</table></div>`}
-function kpi(){const{f,L}=G,od=f.map((x,i)=>i).sort((a,b)=>L.r[a]-L.r[b]||L.t[b]-L.t[a]),tp=od.slice(0,10),bs=tp.reduce((a,i)=>a+f[i][3],0),tt=tp.reduce((a,i)=>a+L.t[i],0);G.od=od;G.tp=tp;
-$("kpi").innerHTML=`<div><span>Leader</span><b>${nm(f[od[0]])}</b><span>${L.t[od[0]].toLocaleString()} pts${idle(f[od[0]])?" · no events this season":""}</span></div><div><span>Lead over #2</span><b>${(L.t[od[0]]-L.t[od[1]]).toLocaleString()}</b><span>points</span></div><div><span>Top 10 points from base</span><b>${Math.round(100*bs/tt)}%</b><span>not from this season's events</span></div>`}
+function kpi(){const{f,L}=G,od=f.map((x,i)=>i).sort((a,b)=>L.r[a]-L.r[b]||L.t[b]-L.t[a]),tp=od.slice(0,10),t3=od.slice(0,3);G.od=od;G.tp=tp;
+const s0=D.season+"-06-01",s1=(D.season+1)+"-06-01",pl=(n,w)=>n+" "+w+(n==1?"":"s");
+const card=(i,k)=>{const x=f[i],e=((P[x[0]]||{}).e||[]).filter(v=>v[0]>=s0&&v[0]<s1&&v[4].includes(C[cat])&&!/^[MW][SFE] \w+ \d{4}-\d{4}$/.test(v[1])),w=e.filter(v=>v[5]==1).length,pd=e.filter(v=>v[5]>0&&v[5]<=3).length,n=x[4].filter(v=>v>0).length,nx=od[k+1];
+return`<div style="cursor:pointer" onclick="pick(${x[0]})"><span>#${L.r[i]}${x[2]?" · "+x[2]:""}</span><b>${nm(x)}</b><span>${L.t[i].toLocaleString()} pts · ${Math.round(100*x[3]/L.t[i])}% base</span>${n?`<span>${pl(n,"scoring event")}${e.length?" · "+pl(w,"win")+" · "+pl(pd,"podium"):""}</span>`:`<span style="color:var(--dn)">No events this season</span>`}${nx!=null?`<span>${(L.t[i]-L.t[nx]).toLocaleString()} pts ahead of #${L.r[nx]}</span>`:""}</div>`};
+const t4=x=>[...x[4]].sort((a,b)=>b-a).slice(0,4).reduce((a,b)=>a+b,0),eo=f.map((x,i)=>i).sort((a,b)=>t4(f[b])-t4(f[a])).slice(0,3),same=eo.every(i=>t3.includes(i));
+$("kpi").innerHTML=t3.map((i,k)=>card(i,k)).join("")+(od[3]!=null?`<div><span>Cut line (#3 vs #4)</span><b>${(L.t[od[2]]-L.t[od[3]]).toLocaleString()} pts</b><span>#4 is ${nm(f[od[3]])}</span></div>`:"")+`<div><span>Top 3 on event scores alone (no base points)</span>${eo.map((i,k)=>`<span style="color:var(--fg)">${k+1}. ${nm(f[i])} · ${t4(f[i]).toLocaleString()}</span>`).join("")}<span>${same?"Same fencers as the current top 3":"Differs from the current top 3"}</span></div>`}
 function tbl(){const{f,S,L,od}=G,q=$("q").value.toLowerCase(),gap=i=>{const a=L.t.filter(v=>v>L.t[i]);return a.length?Math.min(...a)-L.t[i]:0};
 const spark=i=>{const r=S.map(s=>s.r[i]);if(r.length<2)return"";const a=Math.max(...r),b=Math.min(...r),w=64,h=18;return`<svg width="${w}" height="${h}"><polyline fill="none" stroke="currentColor" stroke-width="1.5" points="${r.map((v,k)=>(k*w/(r.length-1)).toFixed(1)+","+(a==b?h/2:2+(v-b)*(h-4)/(a-b)).toFixed(1)).join(" ")}"/></svg>`};
 const cols=[["#",i=>L.r[i]],["Fencer",i=>nm(f[i]).toLowerCase()],["Club",i=>f[i][2]],["Points",i=>L.t[i]],["Base %",i=>L.t[i]?f[i][3]/L.t[i]:0],["Trend",null],["Gap to above",gap]];
