@@ -144,9 +144,30 @@ def build(cat, season):
 SEASON_ROW = re.compile(r"^[MW][SFE] \w+ \d{4}-\d{4}$")  # season-final ranking records, not competitions
 
 
+CIT = re.compile(r"^(citizenship|nationality)\s*:?\s*(.*)$", re.I)
+LABEL = re.compile(r"^(birth|born|dob|date|age|gender|sex|school|club|weapon|category|height|hand)\b|:\s*$", re.I)
+
+
+def citizenship(soup):
+    """1 = Singapore citizen or PR, 0 = neither, None = field missing/unreadable.
+    Only this yes/no flag is kept; the citizenship text itself is never stored or published.
+    Layout-agnostic: finds a 'Citizenship'/'Nationality' label and reads the value next to it."""
+    strs = list(soup.stripped_strings)
+    for i, t in enumerate(strs):
+        m = CIT.match(t)
+        if not m:
+            continue
+        v = m.group(2).strip() or (strs[i + 1].strip() if i + 1 < len(strs) else "")
+        if not v or LABEL.search(v):  # empty value: next string is another label, not a country
+            return None
+        return 1 if re.search(r"singapor", v, re.I) else 0  # citizens and PRs both count as Singapore
+    return None
+
+
 def profile_events(html):
     """Competition history and season-end rankings from a profile page.
-    Birth year, school and citizenship on the page are deliberately ignored."""
+    Birth year and school on the page are deliberately ignored. Citizenship is reduced to a
+    yes/no flag (Singapore or not) so the Top 8 can be limited to national-team-eligible fencers."""
     soup = BeautifulSoup(html, "html.parser")
     events, ranks = None, []
     for table in soup.find_all("table"):
@@ -177,7 +198,7 @@ def profile_events(html):
                               g("Gender"), num(g("Ranking")), num(g("Points"))])
     if not events:
         raise ValueError("no competition table on profile")
-    return sorted(events, key=lambda e: e[0], reverse=True), ranks
+    return sorted(events, key=lambda e: e[0], reverse=True), ranks, citizenship(soup)
 
 
 def past_participants(season, current_ids):
@@ -216,7 +237,7 @@ def update_profiles(data, now, alumni):
     today = now.date()
     new, fetched, failed = {}, 0, 0
     for fid, sig in sigs.items():
-        s = hashlib.md5(json.dumps([sig, "v2"]).encode()).hexdigest()[:10]
+        s = hashlib.md5(json.dumps([sig, "v3"]).encode()).hexdigest()[:10]
         cur = old.get(fid)
         if cur and cur["s"] == s and (today - dt.date.fromisoformat(cur["t"])).days < (90 if sig == ["past"] else 7):
             new[fid] = cur
@@ -225,8 +246,10 @@ def update_profiles(data, now, alumni):
             time.sleep(2)
             r = requests.get(f"https://my.fencingsingapore.org.sg/profiles/{fid}", headers=HEADERS, timeout=30)
             r.raise_for_status()
-            ev, rk = profile_events(r.text)
+            ev, rk, sg = profile_events(r.text)
             new[fid] = {"s": s, "t": today.isoformat(), "e": ev, "r": rk}
+            if sg is not None:
+                new[fid]["c"] = sg  # 1 = Singapore, 0 = not
             fetched += 1
         except Exception as e:  # keep the old copy rather than lose history
             failed += 1
@@ -241,6 +264,14 @@ def update_profiles(data, now, alumni):
     if not os.path.exists("profiles.json") or json.dumps({"p": new}, sort_keys=True) != json.dumps({"p": old}, sort_keys=True):
         with open("profiles.json", "w", encoding="utf-8") as fh:
             json.dump({"p": new}, fh, ensure_ascii=False, separators=(",", ":"))
+    names = {str(f[0]): f[5] for cat in CATS for f in data[cat.lower()]["f"]}
+    out = sorted({names.get(k, k) for k, v in new.items() if v.get("c") == 0 and k in names})
+    unk = sum(1 for k in names if k in new and "c" not in new[k])
+    print(f"citizenship flag: {sum(1 for v in new.values() if v.get('c') == 1)} Singapore, "
+          f"{sum(1 for v in new.values() if v.get('c') == 0)} not, {unk} ranked fencers unreadable")
+    print("excluded from Top 8 (non-Singapore):", ", ".join(out) or "none")
+    if names and unk == len([k for k in names if k in new]):
+        print("::warning::no citizenship field could be read from any profile - Top 8 filter is inactive")
     print(f"profiles.json: {fetched} fetched, {failed} failed, {len(new)} total")
 
 
