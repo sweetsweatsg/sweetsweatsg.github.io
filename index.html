@@ -22,12 +22,12 @@ tr{cursor:pointer}tr.on{background:var(--hi)}.up{color:var(--up)}.dn{color:var(-
 <div id="tabs"></div><div id="sel"></div>
 <div id="cat"><div id="kpi" class="k"></div>
 <div class="card"><input id="q" type="search" placeholder="Search fencer or club" oninput="tbl()"><div class="wrap"><table id="tb"></table></div></div>
-<div class="card"><div class="hd"><h2>Rank history</h2><div><button id="m1" onclick="mode='event';render()">By event (estimated)</button><button id="m2" onclick="mode='day';render()">By day (actual)</button></div></div>
+<div class="card"><div class="hd"><h2>Rank history</h2><div><button id="m1" onclick="mode='event';render()">By event (estimated)</button><button id="m2" onclick="mode='year';render()">By year (season-end)</button></div></div>
 <label class="mu"><input type="checkbox" id="hi" onchange="hideIn=this.checked;chart()"> Hide fencers with no events this season</label>
 <div id="chart" class="wrap"></div><p class="mu" id="cn"></p></div>
 <div class="card"><h2>Points: base vs earned (top 10)</h2><div id="bars"></div></div>
 <div class="card"><h2>Clubs and schools, top 10</h2><div id="club"></div></div></div>
-<p class="mu">Total = best 4 event scores + base points. Base points shrink over time, so "By event" applies today's base to earlier dates and is only an estimate. "By day" uses real daily snapshots and is accurate from the first day recorded. Dashed lines = no events yet this season (ranking is base points only).</p>
+<p class="mu">Total = best 4 event scores + base points. Base points shrink over time, so "By event" applies today's base to earlier dates and is only an estimate. "By year" shows each fencer's final rank at the end of past seasons. Dashed lines = no events yet this season (ranking is base points only).</p>
 </main><script>
 let D={cadet:{ev:[],f:[]},junior:{ev:[],f:[]},senior:{ev:[],f:[]}},H=[],P={},cat="cadet",sel=null,mode="event",hideIn=false,sk=0,sd=1,G;
 const C={cadet:"Cadet",junior:"Junior",senior:"Senior"},K=["#0b6e4f","#2563eb","#d97706","#9333ea","#dc2626","#0891b2","#65a30d","#db2777","#64748b","#92400e","#ca8a04"];
@@ -52,7 +52,7 @@ dt=`<p class="mu">#${L.r[q]} here · ${L.t[q].toLocaleString()} pts · ${u.lengt
 else dt=`<p class="mu">Not ranked in this level.</p>`;
 p=`<div class="card"><b>${nm(a)}</b> — ${info} <button onclick="pick(sel)" style="margin-left:8px">Clear</button><button onclick="navigator.clipboard.writeText(location.href)">Copy link</button>${dt}${hist(sel)}</div>`}
 $("sel").innerHTML=p}
-function hist(id){const e=(P[id]||{}).e;if(!e||!e.length)return"";const s=[...e].sort((a,b)=>a[0]<b[0]?1:-1),pod=s.filter(x=>x[5]>0&&x[5]<=3).length,best=Math.min(...s.map(x=>x[5]).filter(v=>v>0));
+function hist(id){const e=((P[id]||{}).e||[]).filter(x=>!/^[MW][SFE] \w+ \d{4}-\d{4}$/.test(x[1]));if(!e.length)return"";const s=[...e].sort((a,b)=>a[0]<b[0]?1:-1),pod=s.filter(x=>x[5]>0&&x[5]<=3).length,best=Math.min(...s.map(x=>x[5]).filter(v=>v>0));
 return`<h2 style="margin-top:14px">All competitions (${s.length})</h2><p class="mu">${pod} podium finish${pod==1?"":"es"} · best finish ${best}${s.some(x=>!x[2].startsWith("Singapore"))?" · includes overseas events":""}</p><div class="wrap" style="max-height:360px;overflow:auto"><table><tr><th>Date<th>Competition<th>Where<th>Category<th>Counts for<th>Place<th>Points</tr>`+s.map(x=>`<tr style="cursor:default"><td>${x[0]}<td>${x[1]}<td>${x[2]}<td>${x[3].replace("Individual ","")}<td>${x[4]}<td>${x[5]}<td>${x[6]}`).join("")+`</table></div>`}
 function kpi(){const{f,L}=G,od=f.map((x,i)=>i).sort((a,b)=>L.r[a]-L.r[b]||L.t[b]-L.t[a]),tp=od.slice(0,10),bs=tp.reduce((a,i)=>a+f[i][3],0),tt=tp.reduce((a,i)=>a+L.t[i],0);G.od=od;G.tp=tp;
 $("kpi").innerHTML=`<div><span>Leader</span><b>${nm(f[od[0]])}</b><span>${L.t[od[0]].toLocaleString()} pts${idle(f[od[0]])?" · no events this season":""}</span></div><div><span>Lead over #2</span><b>${(L.t[od[0]]-L.t[od[1]]).toLocaleString()}</b><span>points</span></div><div><span>Top 10 points from base</span><b>${Math.round(100*bs/tt)}%</b><span>not from this season's events</span></div>`}
@@ -64,11 +64,14 @@ const key=cols[sk][1];rows.sort((a,b)=>{const x=key(a),y=key(b);return(x>y?1:x<y
 $("tb").innerHTML="<tr>"+cols.map((c,j)=>c[1]?`<th onclick="srt(${j})">${c[0]}${sk==j?(sd>0?" ▲":" ▼"):""}`:`<th>${c[0]}`).join("")+"</tr>"+rows.map(i=>{const x=f[i];return`<tr class="${x[0]==sel?"on":""}" onmouseenter="hv(${x[0]})" onmouseleave="hv(null)" onclick="pick(${x[0]})"><td>${L.r[i]}<td>${nm(x)}${idle(x)?' <span class="bd">no events</span>':""}<td>${x[2]}<td>${L.t[i].toLocaleString()}<td>${L.t[i]?Math.round(100*x[3]/L.t[i]):0}%<td>${spark(i)}<td>${gap(i)||"–"}`}).join("")}
 function series(){const{ev,f,S}=G;
 if(mode=="event"){const R={},T={};f.forEach((x,i)=>{R[x[0]]=S.map(s=>s.r[i]);T[x[0]]=S.map(s=>s.t[i])});return{lab:["Start",...ev.map(e=>e[1])],tip:["Base points only",...ev.map(e=>fm(e[0]))],R,T,note:"Estimate: today's base points are applied to earlier dates, but base points shrink over time, so earlier ranks are approximate."}}
-const sn=H.filter(s=>s.s==D.season&&s[cat]),R={},T={};
-sn.forEach((s,k)=>{const t=s[cat];t.forEach(a=>{const g=1+t.filter(b=>b[2]>a[2]).length;(R[a[0]]=R[a[0]]||Array(sn.length).fill(null))[k]=g;(T[a[0]]=T[a[0]]||Array(sn.length).fill(null))[k]=a[2]})});
-return{lab:sn.map(s=>fm(s.d)),tip:sn.map(s=>s.d),R,T,note:sn.length?"Real daily snapshots since "+fm(sn[0].d)+".":""}}
-function chart(){const{f}=G,m=series(),N=m.lab.length;$("m1").className=mode=="event"?"on":"";$("m2").className=mode=="day"?"on":"";$("cn").textContent=m.note;
-if(N<2){$("chart").innerHTML=`<p class="mu">${mode=="day"?"Daily tracking has just started. The chart appears once two days are recorded.":"No events recorded yet this season."}</p>`;return}
+const AG=C[cat],ok=a=>a[1]==AG&&a[2]=="Sabre"&&a[3]=="Female",yr=new Set();
+f.forEach(x=>((P[x[0]]||{}).r||[]).forEach(a=>{if(ok(a))yr.add(a[0])}));
+const ys=[...yr].sort((a,b)=>a-b);ys.push(D.season);const R={},T={};
+f.forEach((x,i)=>{const rr=(P[x[0]]||{}).r||[],pk=y=>rr.find(a=>a[0]==y&&ok(a));
+R[x[0]]=ys.map(y=>y==D.season?G.L.r[i]:(pk(y)||[])[4]||null);T[x[0]]=ys.map(y=>y==D.season?G.L.t[i]:(pk(y)||[])[5]||null)});
+return{lab:ys.map(y=>y+"–"+String(y+1).slice(2)+(y==D.season?" (so far)":"")),tip:ys.map(y=>y==D.season?"Current ranking":"Season-end ranking"),R,T,note:"Season-end ranks from fencer profiles. The last point is today's ranking and keeps changing. A gap means she wasn't ranked in this age group that season."}}
+function chart(){const{f}=G,m=series(),N=m.lab.length;$("m1").className=mode=="event"?"on":"";$("m2").className=mode=="year"?"on":"";$("cn").textContent=m.note;
+if(N<2){$("chart").innerHTML=`<p class="mu">${mode=="year"?"Season history appears after the next daily update.":"No events recorded yet this season."}</p>`;return}
 const fin=i=>(m.R[f[i][0]]||[])[N-1],show=f.map((x,i)=>i).filter(i=>{const r=fin(i);return((r&&r<=10)||f[i][0]==sel)&&!(hideIn&&idle(f[i])&&f[i][0]!=sel)});
 if(!show.length){$("chart").innerHTML="";return}
 const mx=Math.max(...show.flatMap(i=>(m.R[f[i][0]]||[]).filter(v=>v)));
@@ -85,8 +88,7 @@ $("bars").innerHTML=b+`</svg><p class="mu">Grey = base points · green = best 4 
 const mix=(ix,t)=>{const m={};tp.forEach(i=>{const k=f[i][ix]||"Not listed";m[k]=(m[k]||0)+1});return`<p class="mu" style="margin-bottom:4px">${t}</p>`+Object.entries(m).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<button style="cursor:default">${k} · ${v}</button>`).join("")};
 $("club").innerHTML=mix(2,"By club")+mix(6,"By school")+`<p class="mu">A fencer can have a club, a school, or both, and the federation site often lists only one. "Not listed" means the site shows nothing for that field.</p>`}
 const J=u=>fetch(u+"?"+Date.now()).then(r=>r.ok?r.json():null).catch(()=>null);
-Promise.all([J("data.json"),J("history.json"),J("profiles.json")]).then(([j,h,pr])=>{if(!j)throw 0;D=j;H=(h&&h.snaps)||[];P=(pr&&pr.p)||{};
+Promise.all([J("data.json"),J("profiles.json")]).then(([j,pr])=>{if(!j)throw 0;D=j;P=(pr&&pr.p)||{};
 const m=location.hash.slice(1).split("-");if(C[m[0]])cat=m[0];if(+m[1])sel=+m[1];
-if(H.filter(s=>s.s==D.season).length>1)mode="day";
 $("asof").textContent="Season "+j.season+"–"+(j.season+1)+" · data as at "+j.generated+" SGT";render()}).catch(()=>{$("asof").textContent="Could not load data.json"});
 </script></body></html>
