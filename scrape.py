@@ -180,7 +180,26 @@ def profile_events(html):
     return sorted(events, key=lambda e: e[0], reverse=True), ranks
 
 
-def update_profiles(data, now):
+def past_participants(season, current_ids):
+    """Fencers ranked in earlier seasons (via the site's season selector) who are not ranked now.
+    Only used to discover profile ids; ranks themselves come from each profile."""
+    found = {}
+    for cat in CATS:
+        for s in range(max(2022, season - 5), season):
+            try:
+                time.sleep(3)
+                _, fencers = parse(fetch(cat, s))
+            except Exception as e:
+                print(f"WARNING past season {cat} {s}: {e}")
+                continue
+            for f in fencers:
+                if f["total"] > 0 and f["id"] not in current_ids:
+                    found[f["id"]] = [label(f["name"], 1), label(f["name"], 99), f["club"]]
+    print("past participants found:", len(found))
+    return found
+
+
+def update_profiles(data, now, alumni):
     """Cache each ranked fencer's full competition history in profiles.json.
     A profile is re-fetched only when her results changed or the copy is over 7 days old.
     Failures here never block the rankings update."""
@@ -192,12 +211,14 @@ def update_profiles(data, now):
     for cat in CATS:
         for f in data[cat.lower()]["f"]:
             sigs.setdefault(str(f[0]), []).append([cat, f[4]])
+    for fid in alumni:
+        sigs.setdefault(str(fid), ["past"])  # past participants: history no longer changes
     today = now.date()
     new, fetched, failed = {}, 0, 0
     for fid, sig in sigs.items():
         s = hashlib.md5(json.dumps([sig, "v2"]).encode()).hexdigest()[:10]
         cur = old.get(fid)
-        if cur and cur["s"] == s and (today - dt.date.fromisoformat(cur["t"])).days < 7:
+        if cur and cur["s"] == s and (today - dt.date.fromisoformat(cur["t"])).days < (90 if sig == ["past"] else 7):
             new[fid] = cur
             continue
         try:
@@ -212,6 +233,9 @@ def update_profiles(data, now):
             print(f"WARNING profile {fid}: {e}")
             if cur:
                 new[fid] = cur
+    for fid, n in alumni.items():
+        if str(fid) in new:
+            new[str(fid)]["n"] = n
     if failed:
         print(f"::warning::{failed} of {len(sigs)} profile pages could not be read")
     if not os.path.exists("profiles.json") or json.dumps({"p": new}, sort_keys=True) != json.dumps({"p": old}, sort_keys=True):
@@ -260,7 +284,11 @@ def main():
             json.dump(data, fh, ensure_ascii=False, separators=(",", ":"))
         print("Updated data.json")
     save_snapshot(data, season, now)
-    update_profiles(data, now)
+    try:
+        current_ids = {f[0] for cat in CATS for f in data[cat.lower()]["f"]}
+        update_profiles(data, now, past_participants(season, current_ids))
+    except Exception as e:  # never block the rankings update
+        print(f"::warning::profile step failed: {e}")
 
 
 if __name__ == "__main__":
