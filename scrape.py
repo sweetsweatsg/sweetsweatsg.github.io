@@ -141,28 +141,43 @@ def build(cat, season):
     return {"ev": [[d, n] for _, d, n in events], "f": out}
 
 
+SEASON_ROW = re.compile(r"^[MW][SFE] \w+ \d{4}-\d{4}$")  # season-final ranking records, not competitions
+
+
 def profile_events(html):
-    """Competition history from a profile page. Only the results table is read:
-    the birth year, school and citizenship shown on the page are deliberately ignored."""
+    """Competition history and season-end rankings from a profile page.
+    Birth year, school and citizenship on the page are deliberately ignored."""
     soup = BeautifulSoup(html, "html.parser")
+    events, ranks = None, []
     for table in soup.find_all("table"):
         rows = table.find_all("tr")
         heads = [c.get_text(strip=True) for c in rows[0].find_all(["th", "td"])] if rows else []
-        if "Finalrank" not in heads or "Competition" not in heads:
-            continue
         ix = {h: i for i, h in enumerate(heads) if h}
-        out = []
-        for r in rows[1:]:
-            tds = r.find_all("td")
-            if len(tds) != len(heads):
-                continue
-            g = lambda h: tds[ix[h]].get_text(strip=True)
-            out.append([g("Event Date"), g("Competition"), g("Location"), g("Category"),
-                        g("Points For"), num(g("Finalrank")), num(g("Points"))])
-        if not out:
-            raise ValueError("competition table had no readable rows")
-        return sorted(out, key=lambda e: e[0], reverse=True)
-    raise ValueError("no competition table on profile")
+        if "Finalrank" in ix and "Competition" in ix:
+            events = []
+            for r in rows[1:]:
+                tds = r.find_all("td")
+                if len(tds) != len(heads):
+                    continue
+                g = lambda h: tds[ix[h]].get_text(strip=True)
+                name = g("Competition")
+                if SEASON_ROW.match(name):
+                    continue
+                a = tds[ix["Competition"]].find("a", href=re.compile(r"/competitions/\d+"))
+                cid = int(re.search(r"/competitions/(\d+)", a["href"]).group(1)) if a else 0
+                events.append([g("Event Date"), name, g("Location"), g("Category"),
+                               g("Points For"), num(g("Finalrank")), num(g("Points")), cid])
+        elif "Season Starting" in ix and "Age Group" in ix:
+            for r in rows[1:]:
+                tds = r.find_all("td")
+                if len(tds) != len(heads):
+                    continue
+                g = lambda h: tds[ix[h]].get_text(strip=True)
+                ranks.append([num(g("Season Starting")), g("Age Group"), g("Weapon Type"),
+                              g("Gender"), num(g("Ranking")), num(g("Points"))])
+    if not events:
+        raise ValueError("no competition table on profile")
+    return sorted(events, key=lambda e: e[0], reverse=True), ranks
 
 
 def update_profiles(data, now):
@@ -180,7 +195,7 @@ def update_profiles(data, now):
     today = now.date()
     new, fetched, failed = {}, 0, 0
     for fid, sig in sigs.items():
-        s = hashlib.md5(json.dumps(sig).encode()).hexdigest()[:10]
+        s = hashlib.md5(json.dumps([sig, "v2"]).encode()).hexdigest()[:10]
         cur = old.get(fid)
         if cur and cur["s"] == s and (today - dt.date.fromisoformat(cur["t"])).days < 7:
             new[fid] = cur
@@ -189,7 +204,8 @@ def update_profiles(data, now):
             time.sleep(2)
             r = requests.get(f"https://my.fencingsingapore.org.sg/profiles/{fid}", headers=HEADERS, timeout=30)
             r.raise_for_status()
-            new[fid] = {"s": s, "t": today.isoformat(), "e": profile_events(r.text)}
+            ev, rk = profile_events(r.text)
+            new[fid] = {"s": s, "t": today.isoformat(), "e": ev, "r": rk}
             fetched += 1
         except Exception as e:  # keep the old copy rather than lose history
             failed += 1
