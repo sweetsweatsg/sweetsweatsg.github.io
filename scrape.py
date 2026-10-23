@@ -89,7 +89,7 @@ def parse(html):
             cid = comp_id(a)
             if cid not in dates:
                 raise ValueError(f"no date found for competition {cid}")
-            events.append((i, dates[cid], a.get_text(strip=True)))
+            events.append((i, dates[cid], a.get_text(strip=True), cid))
     events.sort(key=lambda e: (e[1], e[0]))
 
     fencers = []
@@ -108,7 +108,7 @@ def parse(html):
             "star": "*" in tds[0].get_text(),  # rank shown as "7*" on the site
             "base": num(tds[-2].get_text()),
             "total": num(tds[-1].get_text()),
-            "pts": [points(tds[i].get_text(" ", strip=True)) for i, _, _ in events],
+            "pts": [points(tds[i].get_text(" ", strip=True)) for i, *_ in events],
         })
     return events, fencers
 
@@ -139,7 +139,8 @@ def build(cat, season):
     short = [label(f["name"], 1) for f in keep]
     out = [[f["id"], label(f["name"], 2 if short.count(s) > 1 else 1), f["club"], f["base"], f["pts"], label(f["name"], 99), f["school"], 1 if f["star"] else 0]
            for f, s in zip(keep, short)]
-    return {"ev": [[d, n] for _, d, n in events], "f": out}
+    return {"ev": [[d, n, cid] for _, d, n, cid in events], "f": out,
+            "st": sorted(f["id"] for f in fencers if f["star"])}
 
 
 SEASON_ROW = re.compile(r"^[MW][SFE] \w+ \d{4}-\d{4}$")  # season-final ranking records, not competitions
@@ -245,6 +246,76 @@ def update_profiles(data, now, alumni):
     print(f"profiles.json: {fetched} fetched, {failed} failed, {len(new)} total")
 
 
+def competition_page(html):
+    """Full results of one competition: every fencer's final place and points."""
+    soup = BeautifulSoup(html, "html.parser")
+    meta = {}
+    for tr in soup.find_all("tr"):
+        cells = tr.find_all(["th", "td"])
+        if len(cells) == 2 and cells[0].get_text(strip=True).endswith(":"):
+            meta[cells[0].get_text(strip=True).rstrip(":")] = cells[1].get_text(strip=True)
+    rows, cat = [], ""
+    for table in soup.find_all("table"):
+        trs = table.find_all("tr")
+        heads = [c.get_text(strip=True) for c in trs[0].find_all(["th", "td"])] if trs else []
+        if "Finalrank" not in heads or "Fencer" not in heads:
+            continue
+        ix = {h: i for i, h in enumerate(heads) if h}
+        for r in trs[1:]:
+            tds = r.find_all("td")
+            if len(tds) != len(heads):
+                continue
+            a = tds[ix["Fencer"]].find("a", href=re.compile(r"/profiles/\d+"))
+            if a is None:
+                continue
+            if "Category" in ix:
+                cat = cat or tds[ix["Category"]].get_text(strip=True)
+            rows.append([num(tds[ix["Finalrank"]].get_text()), num(tds[ix["Points"]].get_text()),
+                         int(re.search(r"/profiles/(\d+)", a["href"]).group(1)), label(a.get_text(strip=True), 99)])
+    if not rows:
+        raise ValueError("no results table")
+    return {"n": meta.get("Name", ""), "d": meta.get("Eventdate", ""), "l": meta.get("Location", ""),
+            "pf": meta.get("Points For", ""), "k": cat, "t": num(meta.get("Totalfencers", "")) or None,
+            "df": meta.get("Difficulty", ""), "r": rows}
+
+
+def update_competitions(data, now):
+    """Full results for every competition this season (competitions.json).
+    Finished events are read once; events from the last 10 days are re-read in case of corrections."""
+    old = {}
+    if os.path.exists("competitions.json"):
+        with open("competitions.json", encoding="utf-8") as fh:
+            old = json.load(fh).get("c", {})
+    events = {}
+    for cat in CATS:
+        for d, n, cid in data[cat.lower()]["ev"]:
+            events[str(cid)] = d
+    today = now.date()
+    new, fetched, failed = {}, 0, 0
+    for cid, d in sorted(events.items(), key=lambda kv: kv[1]):
+        cur = old.get(cid)
+        if cur and (today - dt.date.fromisoformat(d)).days >= 10:
+            new[cid] = cur
+            continue
+        try:
+            time.sleep(2)
+            r = requests.get(f"https://my.fencingsingapore.org.sg/competitions/{cid}", headers=HEADERS, timeout=30)
+            r.raise_for_status()
+            new[cid] = competition_page(r.text)
+            fetched += 1
+        except Exception as e:  # keep the old copy rather than lose it
+            failed += 1
+            print(f"WARNING competition {cid}: {e}")
+            if cur:
+                new[cid] = cur
+    if failed:
+        print(f"::warning::{failed} of {len(events)} competition pages could not be read")
+    if not os.path.exists("competitions.json") or json.dumps({"c": new}, sort_keys=True) != json.dumps({"c": old}, sort_keys=True):
+        with open("competitions.json", "w", encoding="utf-8") as fh:
+            json.dump({"c": new}, fh, ensure_ascii=False, separators=(",", ":"))
+    print(f"competitions.json: {fetched} fetched, {failed} failed, {len(new)} total")
+
+
 def save_snapshot(data, season, now):
     """One real snapshot per day: [id, base, total]. Base points shrink over time,
     so this is the only accurate record of what the site showed on each day."""
@@ -271,6 +342,7 @@ def main():
             time.sleep(3)  # be gentle with the server
         data[cat.lower()] = build(cat, season)
     data["season"] = season
+    data["stars"] = sorted({i for c in CATS for i in data[c.lower()].pop("st")})  # fencers marked * on the site
     now = dt.datetime.now(dt.timezone(dt.timedelta(hours=8)))
 
     old = None
@@ -285,6 +357,10 @@ def main():
             json.dump(data, fh, ensure_ascii=False, separators=(",", ":"))
         print("Updated data.json")
     save_snapshot(data, season, now)
+    try:
+        update_competitions(data, now)
+    except Exception as e:  # never block the rankings update
+        print(f"::warning::competition step failed: {e}")
     try:
         current_ids = {f[0] for cat in CATS for f in data[cat.lower()]["f"]}
         update_profiles(data, now, past_participants(season, current_ids))
