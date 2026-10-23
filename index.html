@@ -18,10 +18,11 @@ tr{cursor:pointer}tr.on{background:var(--hi)}.up{color:var(--up)}.dn{color:var(-
 .bd{font-size:11px;color:var(--mu);border:1px solid var(--bd);border-radius:6px;padding:0 5px}
 </style></head><body><main>
 <h1>Singapore women's sabre rankings</h1>
-<p class="mu"><span id="asof">Loading…</span> · tap a fencer to follow her across the chart and all three levels</p>
+<p class="mu"><span id="asof">Loading…</span> · tap a fencer to follow her across the chart and all three levels<span id="views"></span></p>
 <div id="tabs"></div><div id="sel"></div>
 <div id="cat"><div id="kpi" class="k"></div><p class="mu" style="margin-top:-4px">Top 3 by ranking points, including fencers marked *; the Top 8 card leaves them out. Selection rules (eligibility, minimum events, etc.) are not applied here. Base points shrink every day, so rankings that lean on them will change.</p>
 <div class="card"><input id="q" type="search" placeholder="Search fencer or club" oninput="tbl()"><div class="wrap"><table id="tb"></table></div></div>
+<div class="card" id="compc"><h2>Competitions this season</h2><p class="mu">Click one to see how the Singapore fencers placed against each other.</p><div id="clist"></div><div id="comp"></div></div>
 <div class="card"><div class="hd"><h2>Rank history</h2><div><button id="m1" onclick="mode='event';render()">By event (estimated)</button><button id="m2" onclick="mode='year';render()">By year (season-end)</button></div></div>
 <label class="mu"><input type="checkbox" id="hi" onchange="hideIn=this.checked;chart()"> Hide fencers with no events this season</label> <label class="mu" id="spl" style="margin-left:12px"><input type="checkbox" id="sp" checked onchange="showPast=this.checked;chart()"> Show past participants</label>
 <div id="chart" class="wrap"></div><p class="mu" id="cn"></p><div id="past"></div></div>
@@ -29,7 +30,7 @@ tr{cursor:pointer}tr.on{background:var(--hi)}.up{color:var(--up)}.dn{color:var(-
 <div class="card"><h2>Clubs and schools, top 10</h2><div id="club"></div></div></div>
 <p class="mu">Total = best 4 event scores + base points. Base points shrink over time, so "By event" applies today's base to earlier dates and is only an estimate. "By year" shows each fencer's final rank at the end of past seasons. Dashed lines = no events yet this season (ranking is base points only). Dotted lines (By year) = past participants not ranked in this level now.</p>
 </main><script>
-let D={cadet:{ev:[],f:[]},junior:{ev:[],f:[]},senior:{ev:[],f:[]}},H=[],P={},showPast=true,cat="cadet",sel=null,mode="event",hideIn=false,sk=0,sd=1,G;
+let D={cadet:{ev:[],f:[]},junior:{ev:[],f:[]},senior:{ev:[],f:[]}},H=[],P={},CP={},cc=null,showPast=true,cat="cadet",sel=null,mode="event",hideIn=false,sk=0,sd=1,G;
 const C={cadet:"Cadet",junior:"Junior",senior:"Senior"},K=["#0b6e4f","#2563eb","#d97706","#9333ea","#dc2626","#0891b2","#65a30d","#db2777","#64748b","#92400e","#ca8a04"];
 const $=id=>document.getElementById(id),fm=d=>new Date(d).toLocaleDateString("en-GB",{day:"numeric",month:"short"}),nm=x=>x[5]||x[1],idle=x=>!x[4].some(v=>v>0);
 function calc(c){const{ev,f}=D[c],S=[];for(let k=0;k<=ev.length;k++){const t=f.map(x=>x[4].slice(0,k).sort((a,b)=>b-a).slice(0,4).reduce((a,b)=>a+b,0)+x[3]);S.push({t,r:t.map(v=>1+t.filter(u=>u>v).length)})}return S}
@@ -42,19 +43,19 @@ function render(){
 tabs();
 const{ev,f}=D[cat],S=calc(cat),n=ev.length;G={ev,f,S,n,L:S[n]};selp();
 if(f.length<2){["kpi","tb","chart","bars","club"].forEach(i=>$(i).innerHTML="");return}
-kpi();tbl();chart();bars()}
+kpi();tbl();chart();bars();comps()}
 function selp(){let p="";const a=Object.values(D).flatMap(d=>d.f||[]).find(x=>x&&x[0]==sel);
 if(sel&&a){const{ev,f,L}=G,q=f.findIndex(x=>x[0]==sel);
 const info=Object.keys(C).map(c=>{const T=calc(c),m=D[c].f.findIndex(x=>x[0]==sel),l=T[T.length-1];return m<0?null:`${C[c]} #${l.r[m]} (${l.t[m].toLocaleString()} pts)`}).filter(Boolean).join(" · ");
 let dt="";
 if(q>=0){const x=f[q],pt=x[4],tc=pt.map((v,i)=>[v,i]).sort((a,b)=>b[0]-a[0]).slice(0,4).map(a=>a[1]),lo=pt.length>=4?[...pt].sort((a,b)=>b-a)[3]:0,u=L.t.filter(v=>v>L.t[q]),d=L.t.filter(v=>v<L.t[q]);
-dt=`<p class="mu">#${L.r[q]} here · ${L.t[q].toLocaleString()} pts · ${u.length?Math.min(...u)-L.t[q]+" behind the next rank up":"leading"}${d.length?" · "+(L.t[q]-Math.max(...d))+" ahead of the next down":""} · a new result raises her total only if it scores more than her lowest counted score (${lo}).</p><p class="mu">Total = best 4 scores + base points. Scores outside her best 4 are shown faded.</p><div class="wrap"><table><tr><th>Event<th>Date<th>Score<th>In her total?</tr>`+ev.map((e,i)=>`<tr style="cursor:default"><td>${e[1]}<td>${fm(e[0])}<td class="${tc.includes(i)?"":"d"}">${pt[i]||"–"}<td>${tc.includes(i)&&pt[i]?"✓ Best 4":pt[i]?"Not counted":""}`).join("")+`<tr style="cursor:default"><td>Base points (carried over, shrinks daily)<td><td>${x[3]}<td>✓ Always added</tr></table></div>`}
+dt=`<p class="mu">#${L.r[q]} here · ${L.t[q].toLocaleString()} pts · ${u.length?Math.min(...u)-L.t[q]+" behind the next rank up":"leading"}${d.length?" · "+(L.t[q]-Math.max(...d))+" ahead of the next down":""} · a new result raises her total only if it scores more than her lowest counted score (${lo}).</p><p class="mu">Total = best 4 scores + base points. Scores outside her best 4 are shown faded.</p><div class="wrap"><table><tr><th>Event<th>Date<th>Score<th>In her total?</tr>`+ev.map((e,i)=>`<tr style="cursor:default"><td>${e[2]?`<a href="#" onclick="openComp(${e[2]});return false" style="color:var(--ac)">${e[1]}</a>`:e[1]}<td>${fm(e[0])}<td class="${tc.includes(i)?"":"d"}">${pt[i]||"–"}<td>${tc.includes(i)&&pt[i]?"✓ Best 4":pt[i]?"Not counted":""}`).join("")+`<tr style="cursor:default"><td>Base points (carried over, shrinks daily)<td><td>${x[3]}<td>✓ Always added</tr></table></div>`}
 else dt=`<p class="mu">Not ranked in this level.</p>`;
 p=`<div class="card"><b>${nm(a)}</b> — ${info} <button onclick="pick(sel)" style="margin-left:8px">Clear</button><button onclick="navigator.clipboard.writeText(location.href)">Copy link</button>${dt}${hist(sel)}</div>`}
 else if(sel&&P[sel]&&P[sel].n)p=`<div class="card"><b>${P[sel].n[1]}</b> — not ranked this season <button onclick="pick(sel)" style="margin-left:8px">Clear</button>${hist(sel)}</div>`;
 $("sel").innerHTML=p}
 function hist(id){const e=((P[id]||{}).e||[]).filter(x=>!/^[MW][SFE] \w+ \d{4}-\d{4}$/.test(x[1]));if(!e.length)return"";const s=[...e].sort((a,b)=>a[0]<b[0]?1:-1),pod=s.filter(x=>x[5]>0&&x[5]<=3).length,best=Math.min(...s.map(x=>x[5]).filter(v=>v>0));
-return`<h2 style="margin-top:14px">All competitions (${s.length})</h2><p class="mu">${pod} podium finish${pod==1?"":"es"} · best finish ${best}${s.some(x=>!x[2].startsWith("Singapore"))?" · includes overseas events":""}</p><div class="wrap" style="max-height:360px;overflow:auto"><table><tr><th>Date<th>Competition<th>Where<th>Category<th>Counts for<th>Place<th>Points</tr>`+s.map(x=>`<tr style="cursor:default"><td>${x[0]}<td>${x[1]}<td>${x[2]}<td>${x[3].replace("Individual ","")}<td>${x[4]}<td>${x[5]}<td>${x[6]}`).join("")+`</table></div>`}
+return`<h2 style="margin-top:14px">All competitions (${s.length})</h2><p class="mu">${pod} podium finish${pod==1?"":"es"} · best finish ${best}${s.some(x=>!x[2].startsWith("Singapore"))?" · includes overseas events":""}</p><div class="wrap" style="max-height:360px;overflow:auto"><table><tr><th>Date<th>Competition<th>Where<th>Category<th>Counts for<th>Place<th>Points</tr>`+s.map(x=>`<tr style="cursor:default"><td>${x[0]}<td>${CP[x[7]]?`<a href="#" onclick="openComp(${x[7]});return false" style="color:var(--ac)">${x[1]}</a>`:x[1]}<td>${x[2]}<td>${x[3].replace("Individual ","")}<td>${x[4]}<td>${x[5]}<td>${x[6]}`).join("")+`</table></div>`}
 function kpi(){const{f,L}=G,od=f.map((x,i)=>i).sort((a,b)=>L.r[a]-L.r[b]||L.t[b]-L.t[a]),tp=od.slice(0,10),t3=od.slice(0,3);G.od=od;G.tp=tp;
 const s0=D.season+"-06-01",s1=(D.season+1)+"-06-01",pl=(n,w)=>n+" "+w+(n==1?"":"s");
 const card=(i,k)=>{const x=f[i],e=((P[x[0]]||{}).e||[]).filter(v=>v[0]>=s0&&v[0]<s1&&v[4].includes(C[cat])&&!/^[MW][SFE] \w+ \d{4}-\d{4}$/.test(v[1])),w=e.filter(v=>v[5]==1).length,pd=e.filter(v=>v[5]>0&&v[5]<=3).length,n=x[4].filter(v=>v>0).length,nx=od[k+1];
@@ -80,6 +81,12 @@ R[id]=ys.map(y=>y==D.season?null:get(rr,y,4));T[id]=ys.map(y=>y==D.season?null:g
 const rs=rr.map(a=>a[4]).filter(v=>v>0),yy=rr.map(a=>a[0]);
 ext.push([id,p.n[0],p.n[2],0,[],p.n[1],rs.length?Math.min(...rs):99,cur.has(id)?"moved up":"not active",Math.min(...yy),Math.max(...yy)])});
 return{lab:ys.map(y=>y+"–"+String(y+1).slice(2)+(y==D.season?" (so far)":"")),tip:ys.map(y=>y==D.season?"Current ranking":"Season-end ranking"),R,T,ext,note:"Season-end ranks from fencer profiles. The last point is today's ranking and keeps changing. A gap means she wasn't ranked in this age group that season. Dotted lines are past participants who are not ranked in this level now (\"moved up\" = now ranked in another level)."}}
+function openComp(id){cc=id;comps();$("compc").scrollIntoView({behavior:"smooth",block:"start"})}
+function comps(){const{ev}=G,st=new Set(D.stars||[]),has=ev.some(e=>e[2]);
+$("clist").innerHTML=has?ev.map(e=>e[2]?`<button class="${e[2]==cc?"on":""}" onclick="openComp(${e[2]})">${e[1]} · ${fm(e[0])}</button>`:"").join(""):`<p class="mu">Competition results appear after the next daily update.</p>`;
+const c=CP[cc];if(!c){$("comp").innerHTML="";return}
+const sg=c.r.filter(x=>!st.has(x[2])).sort((a,b)=>a[0]-b[0]),cur=new Map(Object.values(D).flatMap(d=>d.f||[]).map(x=>[x[0],x])),rk=x=>1+sg.filter(y=>y[0]<x[0]).length;
+$("comp").innerHTML=`<h2 style="margin-top:12px">${c.n} <span class="mu">${fm(c.d)} · ${c.l} · counts for ${c.pf}${c.t?" · "+c.t+" fencers":""}${c.df?" · difficulty "+c.df:""}</span></h2><p class="mu">${sg.length} Singapore fencers, ordered by final place. Fencers marked * on the federation site are left out, and places among the Singapore fencers are renumbered.</p><div class="wrap" style="max-height:420px;overflow:auto"><table><tr><th>SG rank<th>Final place<th>Fencer<th>Club<th>Points</tr>`+sg.map(x=>`<tr class="${x[2]==sel?"on":""}" onclick="pick(${x[2]})"><td>${rk(x)}<td>${x[0]}<td>${x[3]}<td>${(cur.get(x[2])||[])[2]||""}<td>${x[1]}`).join("")+`</table></div>`}
 function pastTbl(e){e=[...e].sort((a,b)=>a[6]-b[6]||b[9]-a[9]);const sy=y=>y+"–"+String(y+1).slice(2);
 return`<h2 style="margin-top:12px">Past participants (${e.length}) <span class="mu">not ranked in ${C[cat]} this season</span></h2><div class="wrap" style="max-height:300px;overflow:auto"><table><tr><th>Fencer<th>Club<th>Ranked<th>Best finish<th>Status</tr>`+e.map(x=>`<tr class="${x[0]==sel?"on":""}" onmouseenter="hv(${x[0]})" onmouseleave="hv(null)" onclick="pick(${x[0]})"><td>${x[5]}<td>${x[2]}<td>${sy(x[8])}${x[8]==x[9]?"":" → "+sy(x[9])}<td>${x[6]}<td>${x[7]}`).join("")+`</table></div>`}
 function chart(){const{f}=G,m=series(),N=m.lab.length,ext=mode=="year"&&showPast?(m.ext||[]):[],ff=f.concat(ext),nf=f.length;$("m1").className=mode=="event"?"on":"";$("m2").className=mode=="year"?"on":"";$("cn").textContent=m.note;$("spl").style.display=mode=="year"?"":"none";$("past").innerHTML=ext.length?pastTbl(ext):"";
@@ -89,7 +96,7 @@ if(!show.length){$("chart").innerHTML="";return}
 const mx=Math.max(...show.flatMap(i=>(m.R[ff[i][0]]||[]).filter(v=>v)));
 const W=800,H2=380,ml=34,mg=175,mt=16,mb=84,X=i=>ml+i*(W-ml-mg)/(N-1),Y=r=>mt+(mx>1?(r-1)*(H2-mt-mb)/(mx-1):0);
 let s=`<svg viewBox="0 0 ${W} ${H2}" width="100%" style="min-width:640px" role="img" aria-label="Rank history">`;
-for(let i=0;i<N;i++){const y=H2-mb+18;s+=`<line x1="${X(i)}" y1="${mt}" x2="${X(i)}" y2="${H2-mb}" stroke="var(--bd)"/><text x="${X(i)}" y="${y}" transform="rotate(40 ${X(i)} ${y})" class="ax"><title>${m.tip[i]}</title>${m.lab[i]}</text>`}
+for(let i=0;i<N;i++){const y=H2-mb+18;s+=`<line x1="${X(i)}" y1="${mt}" x2="${X(i)}" y2="${H2-mb}" stroke="var(--bd)"/><text x="${X(i)}" y="${y}" transform="rotate(40 ${X(i)} ${y})" class="ax"${mode=="event"&&i>0&&G.ev[i-1][2]?` style="cursor:pointer" onclick="openComp(${G.ev[i-1][2]})"`:""}><title>${m.tip[i]}</title>${m.lab[i]}</text>`}
 for(let r=1;r<=mx;r+=mx>12?2:1)s+=`<text x="${ml-10}" y="${Y(r)+4}" text-anchor="end" class="ax">${r}</text>`;
 show.forEach((i,j)=>{const x=ff[i],id=x[0],hot=id==sel,col=K[j%K.length],pt=(m.R[id]||[]).map((r,k)=>r?[X(k),Y(r),k]:null).filter(Boolean),old=i>=nf;if(!pt.length)return;const l=pt[pt.length-1];
 s+=`<g data-id="${id}" opacity="${sel&&!hot?0.15:1}" style="cursor:pointer" onclick="pick(${id})" onmouseenter="hv(${id})" onmouseleave="hv(null)"><polyline fill="none" stroke="${col}" stroke-width="${hot?4:2}"${old?' stroke-dasharray="2 5"':idle(x)?' stroke-dasharray="6 4"':""} points="${pt.map(a=>a[0]+","+a[1]).join(" ")}"/>`+pt.map(a=>`<circle cx="${a[0]}" cy="${a[1]}" r="${hot?5:3}" fill="${col}"><title>${nm(x)} · rank ${m.R[id][a[2]]} · ${m.T[id][a[2]]} pts · ${m.tip[a[2]]}</title></circle>`).join("")+`<text x="${l[0]+8}" y="${l[1]+4}" font-size="11" fill="${col}"><title>${nm(x)}</title>${x[1]}${old?" ("+x[7]+")":idle(x)?" ·":""}</text></g>`});
@@ -100,7 +107,11 @@ $("bars").innerHTML=b+`</svg><p class="mu">Grey = base points · green = best 4 
 const mix=(ix,t)=>{const m={};tp.forEach(i=>{const k=f[i][ix]||"Not listed";m[k]=(m[k]||0)+1});return`<p class="mu" style="margin-bottom:4px">${t}</p>`+Object.entries(m).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<button style="cursor:default">${k} · ${v}</button>`).join("")};
 $("club").innerHTML=mix(2,"By club")+mix(6,"By school")+`<p class="mu">A fencer can have a club, a school, or both, and the federation site often lists only one. "Not listed" means the site shows nothing for that field.</p>`}
 const J=u=>fetch(u+"?"+Date.now()).then(r=>r.ok?r.json():null).catch(()=>null);
-Promise.all([J("data.json"),J("profiles.json")]).then(([j,pr])=>{if(!j)throw 0;D=j;P=(pr&&pr.p)||{};
+Promise.all([J("data.json"),J("profiles.json"),J("competitions.json")]).then(([j,pr,cp])=>{if(!j)throw 0;D=j;P=(pr&&pr.p)||{};CP=(cp&&cp.c)||{};
 const m=location.hash.slice(1).split("-");if(C[m[0]])cat=m[0];if(+m[1])sel=+m[1];
 $("asof").textContent="Season "+j.season+"–"+(j.season+1)+" · data as at "+j.generated+" SGT";render()}).catch(()=>{$("asof").textContent="Could not load data.json"});
+// Total-views counter (GoatCounter: free, no cookies). Set GC to your GoatCounter site code; leave "" to switch it off.
+const GC="sweetsweatsg";
+(function(){if(!GC)return;const u="https://"+GC+".goatcounter.com",s=document.createElement("script");s.async=true;s.src="https://gc.zgo.at/count.js";s.dataset.goatcounter=u+"/count";document.head.appendChild(s);
+fetch(u+"/counter/TOTAL.json").then(r=>r.json()).then(j=>{if(j&&j.count)$("views").textContent=" · "+j.count+" total views"}).catch(()=>{})})();
 </script></body></html>
