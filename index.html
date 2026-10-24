@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="robots" content="noindex"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Singapore Sabre Rankings</title>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="robots" content="noindex"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Singapore Fencing Rankings</title>
 <style>
 :root{--bg:#fff;--fg:#1a1d21;--mu:#6b7280;--bd:#e5e7eb;--ac:#0b6e4f;--up:#15803d;--dn:#b91c1c;--hi:#ecfdf5;--gr:#f1f3f5;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14171a;--fg:#e8eaed;--mu:#9aa0a6;--bd:#2c3136;--ac:#4ade80;--up:#4ade80;--dn:#f87171;--hi:#1d2a24;--gr:#23282d}}
@@ -19,7 +19,7 @@ tr{cursor:pointer}tr.on{background:var(--hi)}.up{color:var(--up)}.dn{color:var(-
 </style></head><body><main>
 <h1 id="ttl">Singapore women's sabre rankings</h1>
 <p class="mu"><span id="asof">Loading…</span> · tap a fencer to follow them across the chart and the other levels<span id="views"></span></p>
-<div id="gtabs"></div><div id="tabs"></div><div id="sel"></div>
+<div id="wtabs"></div><div id="gtabs"></div><div id="tabs"></div><div id="sel"></div>
 <div id="cat"><div id="kpi" class="k"></div><p class="mu" style="margin-top:-4px">Top 3 by ranking points, including fencers marked *; the Top 8 card leaves them out. Selection rules (eligibility, minimum events, etc.) are not applied here. Base points shrink every day, so rankings that lean on them will change.</p>
 <div class="card"><input id="q" type="search" placeholder="Search fencer or club" oninput="tbl()"><div class="wrap"><table id="tb"></table></div></div>
 <div class="card" id="compc"><h2>Competitions this season</h2><p class="mu">Click one to see how the Singapore fencers placed against each other.</p><div id="clist"></div><div id="comp"></div></div>
@@ -28,30 +28,31 @@ tr{cursor:pointer}tr.on{background:var(--hi)}.up{color:var(--up)}.dn{color:var(-
 <div id="chart" class="wrap"></div><p class="mu" id="cn"></p><div id="past"></div></div>
 <div class="card"><h2>Points: base vs earned (top 10)</h2><div id="bars"></div></div>
 <div class="card"><h2>Clubs and schools, top 10</h2><div id="club"></div></div></div>
-<p class="mu">Total = best 4 event scores + base points. Base points shrink over time, so "By event" applies today's base to earlier dates and is only an estimate. "By year" shows each fencer's final rank at the end of past seasons. Dashed lines = no events yet this season (ranking is base points only). Dotted lines (By year) = past participants not ranked in this level now.</p>
+<p class="mu">Total = the best event scores (4 or 5 depending on weapon and level) + base points. Base points shrink over time, so "By event" applies today's base to earlier dates and is only an estimate. "By year" shows each fencer's final rank at the end of past seasons. Dashed lines = no events yet this season (ranking is base points only). Dotted lines (By year) = past participants not ranked in this level now.</p>
 </main><script>
-let D={cadet:{ev:[],f:[]},junior:{ev:[],f:[]},senior:{ev:[],f:[]}},H=[],P={},CP={},cc=null,ALL=null,gen="women",showPast=true,cat="cadet",sel=null,mode="event",hideIn=false,sk=0,sd=1,G;
+let D={cadet:{ev:[],f:[]},junior:{ev:[],f:[]},senior:{ev:[],f:[]}},H=[],P={},CP={},cc=null,ALL=null,gen="women",wp="sabre",showPast=true,cat="cadet",sel=null,mode="event",hideIn=false,sk=0,sd=1,G;
 const C={cadet:"Cadet",junior:"Junior",senior:"Senior"},K=["#0b6e4f","#2563eb","#d97706","#9333ea","#dc2626","#0891b2","#65a30d","#db2777","#64748b","#92400e","#ca8a04"];
 const $=id=>document.getElementById(id),fm=d=>new Date(d).toLocaleDateString("en-GB",{day:"numeric",month:"short"}),nm=x=>x[5]||x[1],idle=x=>!x[4].some(v=>v>0);
-function calc(c){const{ev,f}=D[c],S=[];for(let k=0;k<=ev.length;k++){const t=f.map(x=>x[4].slice(0,k).sort((a,b)=>b-a).slice(0,4).reduce((a,b)=>a+b,0)+x[3]);S.push({t,r:t.map(v=>1+t.filter(u=>u>v).length)})}return S}
-const sl=g=>Object.assign({season:ALL.season,generated:ALL.generated,stars:ALL.stars||[]},ALL[g]||{});
+function calc(c){const{ev,f}=D[c],S=[];for(let k=0;k<=ev.length;k++){const t=f.map(x=>x[4].slice(0,k).sort((a,b)=>b-a).slice(0,D[c].b||4).reduce((a,b)=>a+b,0)+x[3]);S.push({t,r:t.map(v=>1+t.filter(u=>u>v).length)})}return S}
+const sl=g=>Object.assign({season:ALL.season,generated:ALL.generated,stars:ALL.stars||[]},(ALL.weapons[wp]||{})[g]||{}),hasM=()=>!!((ALL.weapons[wp]||{}).men&&ALL.weapons[wp].men.cadet);
+function setWp(w){wp=w;if(gen=="men"&&!hasM())gen="women";D=sl(gen);sel=null;cc=null;go();render()}
 function setGen(g){gen=g;D=sl(g);sel=null;cc=null;go();render()}
-function go(){history.replaceState(null,"","#"+(gen=="men"?"men-":"")+cat+(sel?"-"+sel:""))}
+function go(){history.replaceState(null,"","#"+(wp=="foil"?"foil-":"")+(gen=="men"?"men-":"")+cat+(sel?"-"+sel:""))}
 function pick(id){sel=sel==id?null:id;go();render()}
 function hv(id){const a=sel||id;document.querySelectorAll("#chart g[data-id]").forEach(g=>g.style.opacity=!a||g.dataset.id==a?1:0.15)}
 function srt(k){sd=sk==k?-sd:1;sk=k;tbl()}
-function tabs(){$("gtabs").innerHTML=ALL&&ALL.men&&ALL.men.cadet?["women","men"].map(g=>`<button class="${g==gen?"on":""}" onclick="setGen('${g}')">${g=="men"?"Men":"Women"}</button>`).join("")+'<span style="margin-right:10px"></span>':"";$("ttl").textContent="Singapore "+(gen=="men"?"men's":"women's")+" sabre rankings";$("tabs").innerHTML=Object.keys(C).map(c=>`<button class="${c==cat?"on":""}" onclick="cat='${c}';go();render()">${C[c]}</button>`).join("")}
+function tabs(){const ws=["sabre","foil"].filter(w=>ALL&&ALL.weapons[w]&&ALL.weapons[w].women&&ALL.weapons[w].women.cadet);$("wtabs").innerHTML=ws.length>1?ws.map(w=>`<button class="${w==wp?"on":""}" onclick="setWp('${w}')">${w=="foil"?"Foil":"Sabre"}</button>`).join("")+'<span style="margin-right:10px"></span>':"";$("gtabs").innerHTML=ALL&&hasM()?["women","men"].map(g=>`<button class="${g==gen?"on":""}" onclick="setGen('${g}')">${g=="men"?"Men":"Women"}</button>`).join("")+'<span style="margin-right:10px"></span>':"";$("ttl").textContent="Singapore "+(gen=="men"?"men's":"women's")+" "+(wp=="foil"?"foil":"sabre")+" rankings";$("tabs").innerHTML=Object.keys(C).map(c=>`<button class="${c==cat?"on":""}" onclick="cat='${c}';go();render()">${C[c]}</button>`).join("")}
 function render(){
 tabs();
-const{ev,f}=D[cat],S=calc(cat),n=ev.length;G={ev,f,S,n,L:S[n]};selp();
+const{ev,f}=D[cat],S=calc(cat),n=ev.length;G={ev,f,S,n,L:S[n],bn:D[cat].b||4};selp();
 if(f.length<2){["kpi","tb","chart","bars","club"].forEach(i=>$(i).innerHTML="");return}
 kpi();tbl();chart();bars();comps()}
 function selp(){let p="";const a=Object.values(D).flatMap(d=>d.f||[]).find(x=>x&&x[0]==sel);
-if(sel&&a){const{ev,f,L}=G,q=f.findIndex(x=>x[0]==sel);
+if(sel&&a){const{ev,f,L,bn}=G,q=f.findIndex(x=>x[0]==sel);
 const info=Object.keys(C).map(c=>{const T=calc(c),m=D[c].f.findIndex(x=>x[0]==sel),l=T[T.length-1];return m<0?null:`${C[c]} #${l.r[m]} (${l.t[m].toLocaleString()} pts)`}).filter(Boolean).join(" · ");
 let dt="";
-if(q>=0){const x=f[q],pt=x[4],tc=pt.map((v,i)=>[v,i]).sort((a,b)=>b[0]-a[0]).slice(0,4).map(a=>a[1]),lo=pt.length>=4?[...pt].sort((a,b)=>b-a)[3]:0,u=L.t.filter(v=>v>L.t[q]),d=L.t.filter(v=>v<L.t[q]);
-dt=`<p class="mu">#${L.r[q]} here · ${L.t[q].toLocaleString()} pts · ${u.length?Math.min(...u)-L.t[q]+" behind the next rank up":"leading"}${d.length?" · "+(L.t[q]-Math.max(...d))+" ahead of the next down":""} · a new result raises the total only if it scores more than the lowest counted score (${lo}).</p><p class="mu">Total = best 4 scores + base points. Scores outside the best 4 are shown faded.</p><div class="wrap"><table><tr><th>Event<th>Date<th>Score<th>In the total?</tr>`+ev.map((e,i)=>`<tr style="cursor:default"><td>${e[2]?`<a href="#" onclick="openComp(${e[2]});return false" style="color:var(--ac)">${e[1]}</a>`:e[1]}<td>${fm(e[0])}<td class="${tc.includes(i)?"":"d"}">${pt[i]||"–"}<td>${tc.includes(i)&&pt[i]?"✓ Best 4":pt[i]?"Not counted":""}`).join("")+`<tr style="cursor:default"><td>Base points (carried over, shrinks daily)<td><td>${x[3]}<td>✓ Always added</tr></table></div>`}
+if(q>=0){const x=f[q],pt=x[4],tc=pt.map((v,i)=>[v,i]).sort((a,b)=>b[0]-a[0]).slice(0,bn).map(a=>a[1]),lo=pt.length>=bn?[...pt].sort((a,b)=>b-a)[bn-1]:0,u=L.t.filter(v=>v>L.t[q]),d=L.t.filter(v=>v<L.t[q]);
+dt=`<p class="mu">#${L.r[q]} here · ${L.t[q].toLocaleString()} pts · ${u.length?Math.min(...u)-L.t[q]+" behind the next rank up":"leading"}${d.length?" · "+(L.t[q]-Math.max(...d))+" ahead of the next down":""} · a new result raises the total only if it scores more than the lowest counted score (${lo}).</p><p class="mu">Total = best ${bn} scores + base points. Scores outside the best ${bn} are shown faded.</p><div class="wrap"><table><tr><th>Event<th>Date<th>Score<th>In the total?</tr>`+ev.map((e,i)=>`<tr style="cursor:default"><td>${e[2]?`<a href="#" onclick="openComp(${e[2]});return false" style="color:var(--ac)">${e[1]}</a>`:e[1]}<td>${fm(e[0])}<td class="${tc.includes(i)?"":"d"}">${pt[i]||"–"}<td>${tc.includes(i)&&pt[i]?"✓ Best "+bn:pt[i]?"Not counted":""}`).join("")+`<tr style="cursor:default"><td>Base points (carried over, shrinks daily)<td><td>${x[3]}<td>✓ Always added</tr></table></div>`}
 else dt=`<p class="mu">Not ranked in this level.</p>`;
 p=`<div class="card"><b>${nm(a)}</b> — ${info} <button onclick="pick(sel)" style="margin-left:8px">Clear</button><button onclick="navigator.clipboard.writeText(location.href)">Copy link</button>${dt}${hist(sel)}</div>`}
 else if(sel&&P[sel]&&P[sel].n)p=`<div class="card"><b>${P[sel].n[1]}</b> — not ranked this season <button onclick="pick(sel)" style="margin-left:8px">Clear</button>${hist(sel)}</div>`;
@@ -60,9 +61,9 @@ function hist(id){const e=((P[id]||{}).e||[]).filter(x=>!/^[MW][SFE] \w+ \d{4}-\
 return`<h2 style="margin-top:14px">All competitions (${s.length})</h2><p class="mu">${pod} podium finish${pod==1?"":"es"} · best finish ${best}${s.some(x=>!x[2].startsWith("Singapore"))?" · includes overseas events":""}</p><div class="wrap" style="max-height:360px;overflow:auto"><table><tr><th>Date<th>Competition<th>Where<th>Category<th>Counts for<th>Place<th>Points</tr>`+s.map(x=>`<tr style="cursor:default"><td>${x[0]}<td>${CP[x[7]]?`<a href="#" onclick="openComp(${x[7]});return false" style="color:var(--ac)">${x[1]}</a>`:x[1]}<td>${x[2]}<td>${x[3].replace("Individual ","")}<td>${x[4]}<td>${x[5]}<td>${x[6]}`).join("")+`</table></div>`}
 function kpi(){const{f,L}=G,od=f.map((x,i)=>i).sort((a,b)=>L.r[a]-L.r[b]||L.t[b]-L.t[a]),tp=od.slice(0,10),t3=od.slice(0,3);G.od=od;G.tp=tp;
 const s0=D.season+"-06-01",s1=(D.season+1)+"-06-01",pl=(n,w)=>n+" "+w+(n==1?"":"s");
-const card=(i,k)=>{const x=f[i],e=((P[x[0]]||{}).e||[]).filter(v=>v[0]>=s0&&v[0]<s1&&v[4].includes(C[cat])&&!/^[MW][SFE] \w+ \d{4}-\d{4}$/.test(v[1])),w=e.filter(v=>v[5]==1).length,pd=e.filter(v=>v[5]>0&&v[5]<=3).length,n=x[4].filter(v=>v>0).length,nx=od[k+1];
+const card=(i,k)=>{const x=f[i],e=((P[x[0]]||{}).e||[]).filter(v=>v[0]>=s0&&v[0]<s1&&v[4].includes(C[cat])&&v[3].includes(wp=="foil"?"Foil":"Sabre")&&!/^[MW][SFE] \w+ \d{4}-\d{4}$/.test(v[1])),w=e.filter(v=>v[5]==1).length,pd=e.filter(v=>v[5]>0&&v[5]<=3).length,n=x[4].filter(v=>v>0).length,nx=od[k+1];
 return`<div class="pc" style="cursor:pointer" onclick="pick(${x[0]})"><span>#${L.r[i]}${x[2]?" · "+x[2]:""}</span><b>${nm(x)}</b><span>${L.t[i].toLocaleString()} pts · ${Math.round(100*x[3]/L.t[i])}% base</span>${n?`<span>${pl(n,"scoring event")}${e.length?" · "+pl(w,"win")+" · "+pl(pd,"podium"):""}</span>`:`<span style="color:var(--dn)">No events this season</span>`}${nx!=null?`<span>${(L.t[i]-L.t[nx]).toLocaleString()} pts ahead of #${L.r[nx]}</span>`:""}</div>`};
-const t4=x=>[...x[4]].sort((a,b)=>b-a).slice(0,4).reduce((a,b)=>a+b,0),eo=f.map((x,i)=>i).sort((a,b)=>t4(f[b])-t4(f[a])).slice(0,3),same=eo.every(i=>t3.includes(i));
+const t4=x=>[...x[4]].sort((a,b)=>b-a).slice(0,G.bn).reduce((a,b)=>a+b,0),eo=f.map((x,i)=>i).sort((a,b)=>t4(f[b])-t4(f[a])).slice(0,3),same=eo.every(i=>t3.includes(i));
 $("kpi").innerHTML=t3.map((i,k)=>card(i,k)).join("")+(od[3]!=null?`<div><span>Cut line (#3 vs #4)</span><b>${(L.t[od[2]]-L.t[od[3]]).toLocaleString()} pts</b><span>#4 is ${nm(f[od[3]])}</span></div>`:"")+`<div><span>Top 3 on event scores alone (no base points)</span>${eo.map((i,k)=>`<span style="color:var(--fg)">${k+1}. ${nm(f[i])} · ${t4(f[i]).toLocaleString()}</span>`).join("")}<span>${same?"Same fencers as the current top 3":"Differs from the current top 3"}</span></div>`+`<div><span>Top 8 (excl. *)</span><span style="columns:2;column-gap:12px">${od.filter(i=>!f[i][7]).slice(0,8).map((i,k)=>`<span style="color:var(--fg)" title="${nm(f[i])}">${k+1}. ${f[i][1]}</span>`).join("")}</span><span>Leaves out fencers marked * on the federation site; renumbered</span></div>`}
 function tbl(){const{f,S,L,od}=G,q=$("q").value.toLowerCase(),gap=i=>{const a=L.t.filter(v=>v>L.t[i]);return a.length?Math.min(...a)-L.t[i]:0};
 const spark=i=>{const r=S.map(s=>s.r[i]);if(r.length<2)return"";const a=Math.max(...r),b=Math.min(...r),w=64,h=18;return`<svg width="${w}" height="${h}"><polyline fill="none" stroke="currentColor" stroke-width="1.5" points="${r.map((v,k)=>(k*w/(r.length-1)).toFixed(1)+","+(a==b?h/2:2+(v-b)*(h-4)/(a-b)).toFixed(1)).join(" ")}"/></svg>`};
@@ -72,7 +73,7 @@ const key=cols[sk][1];rows.sort((a,b)=>{const x=key(a),y=key(b);return(x>y?1:x<y
 $("tb").innerHTML="<tr>"+cols.map((c,j)=>c[1]?`<th onclick="srt(${j})">${c[0]}${sk==j?(sd>0?" ▲":" ▼"):""}`:`<th>${c[0]}`).join("")+"</tr>"+rows.map(i=>{const x=f[i];return`<tr class="${x[0]==sel?"on":""}" onmouseenter="hv(${x[0]})" onmouseleave="hv(null)" onclick="pick(${x[0]})"><td>${L.r[i]}<td>${nm(x)}${idle(x)?' <span class="bd">no events</span>':""}<td>${x[2]}<td>${L.t[i].toLocaleString()}<td>${L.t[i]?Math.round(100*x[3]/L.t[i]):0}%<td>${spark(i)}<td>${gap(i)||"–"}`}).join("")}
 function series(){const{ev,f,S}=G;
 if(mode=="event"){const R={},T={};f.forEach((x,i)=>{R[x[0]]=S.map(s=>s.r[i]);T[x[0]]=S.map(s=>s.t[i])});return{lab:["Start",...ev.map(e=>e[1])],tip:["Base points only",...ev.map(e=>fm(e[0]))],R,T,note:"Estimate: today's base points are applied to earlier dates, but base points shrink over time, so earlier ranks are approximate."}}
-const AG=C[cat],ok=a=>a[1]==AG&&a[2]=="Sabre"&&a[3]==(gen=="men"?"Male":"Female"),yr=new Set();
+const AG=C[cat],ok=a=>a[1]==AG&&a[2]==(wp=="foil"?"Foil":"Sabre")&&a[3]==(gen=="men"?"Male":"Female"),yr=new Set();
 Object.values(P).forEach(p=>(p.r||[]).forEach(a=>{if(ok(a))yr.add(a[0])}));
 const ys=[...yr].filter(y=>y<D.season).sort((a,b)=>a-b);ys.push(D.season);const R={},T={},ext=[];
 const get=(rr,y,k)=>((rr.find(a=>a[0]==y&&ok(a))||[])[k])||null;
@@ -105,12 +106,12 @@ s+=`<g data-id="${id}" opacity="${sel&&!hot?0.15:1}" style="cursor:pointer" oncl
 $("chart").innerHTML=s+"</svg>"}
 function bars(){const{f,L,tp}=G,mx=Math.max(...tp.map(i=>L.t[i]));let b=`<svg viewBox="0 0 700 ${tp.length*26+6}" width="100%">`;
 tp.forEach((i,j)=>{const y=j*26+4,w=v=>v/mx*480,b0=f[i][3],ea=L.t[i]-b0;b+=`<text x="0" y="${y+14}" font-size="12" fill="currentColor"><title>${nm(f[i])}</title>${L.r[i]}. ${f[i][1]}</text><rect x="150" y="${y}" width="${w(b0)}" height="18" fill="#94a3b8"/><rect x="${150+w(b0)}" y="${y}" width="${w(ea)}" height="18" fill="var(--ac)"/><text x="${156+w(L.t[i])}" y="${y+14}" font-size="11" class="ax">${L.t[i].toLocaleString()}</text>`});
-$("bars").innerHTML=b+`</svg><p class="mu">Grey = base points · green = best 4 event scores</p>`;
+$("bars").innerHTML=b+`</svg><p class="mu">Grey = base points · green = best ${G.bn} event scores</p>`;
 const mix=(ix,t)=>{const m={};tp.forEach(i=>{const k=f[i][ix]||"Not listed";m[k]=(m[k]||0)+1});return`<p class="mu" style="margin-bottom:4px">${t}</p>`+Object.entries(m).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<button style="cursor:default">${k} · ${v}</button>`).join("")};
 $("club").innerHTML=mix(2,"By club")+mix(6,"By school")+`<p class="mu">A fencer can have a club, a school, or both, and the federation site often lists only one. "Not listed" means the site shows nothing for that field.</p>`}
 const J=u=>fetch(u+"?"+Date.now()).then(r=>r.ok?r.json():null).catch(()=>null);
-Promise.all([J("data.json"),J("profiles.json"),J("competitions.json")]).then(([j,pr,cp])=>{if(!j)throw 0;ALL=j.women?j:{season:j.season,generated:j.generated,stars:j.stars,women:{cadet:j.cadet,junior:j.junior,senior:j.senior}};P=(pr&&pr.p)||{};CP=(cp&&cp.c)||{};
-const m=location.hash.slice(1).split("-");if(m[0]=="men"||m[0]=="women")gen=m.shift();if(gen=="men"&&!(ALL.men&&ALL.men.cadet))gen="women";D=sl(gen);if(C[m[0]])cat=m[0];if(+m[1])sel=+m[1];
+Promise.all([J("data.json"),J("profiles.json"),J("competitions.json")]).then(([j,pr,cp])=>{if(!j)throw 0;ALL=j.weapons?j:{season:j.season,generated:j.generated,stars:j.stars,weapons:{sabre:j.women?{women:j.women,men:j.men}:{women:{cadet:j.cadet,junior:j.junior,senior:j.senior}}}};P=(pr&&pr.p)||{};CP=(cp&&cp.c)||{};
+const m=location.hash.slice(1).split("-");if(m[0]=="foil"||m[0]=="sabre")wp=m.shift();if(!ALL.weapons[wp])wp="sabre";if(m[0]=="men"||m[0]=="women")gen=m.shift();if(gen=="men"&&!hasM())gen="women";D=sl(gen);if(C[m[0]])cat=m[0];if(+m[1])sel=+m[1];
 $("asof").textContent="Season "+j.season+"–"+(j.season+1)+" · data as at "+j.generated+" SGT";render()}).catch(()=>{$("asof").textContent="Could not load data.json"});
 // Total-views counter (GoatCounter: free, no cookies). Set GC to your GoatCounter site code; leave "" to switch it off.
 const GC="sweetsweatsg";
