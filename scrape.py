@@ -16,6 +16,7 @@ from bs4 import BeautifulSoup
 
 URL = "https://my.fencingsingapore.org.sg/showranks"
 CATS = ["Cadet", "Junior", "Senior"]
+GENDERS = {"women": "Female", "men": "Male"}
 HEADERS = {"User-Agent": "sabre-dashboard/1.0 (personal project; 3 requests per day)"}
 DATE = re.compile(r"\d{4}-\d{2}-\d{2}")
 
@@ -26,10 +27,10 @@ def season_start(today=None):
     return t.year if t.month >= 6 else t.year - 1
 
 
-def fetch(cat, season):
+def fetch(cat, season, gender="Female"):
     params = {
         "rankingmethod[category]": cat,
-        "rankingmethod[gender]": "Female",
+        "rankingmethod[gender]": gender,
         "rankingmethod[weapon]": "Sabre",
         "rankingmethod[windowlength]": season,
         "commit": "Search",
@@ -130,8 +131,8 @@ def label(name, words):
     return " ".join((sur.split() + given.split()[:words])).title()
 
 
-def build(cat, season):
-    events, fencers = parse(fetch(cat, season))
+def build(cat, season, gender="Female"):
+    events, fencers = parse(fetch(cat, season, gender))
     bad = check(cat, fencers)
     if bad:
         print(f"WARNING {cat}: total mismatch for {bad}")
@@ -186,20 +187,20 @@ def past_participants(season, current_ids):
     """Fencers ranked in earlier seasons (via the site's season selector) who are not ranked now.
     Only used to discover profile ids; ranks themselves come from each profile."""
     found = {}
-    for cat in CATS:
-        for s in range(max(2022, season - 5), season):
-            try:
-                time.sleep(3)
-                _, fencers = parse(fetch(cat, s))
-            except Exception as e:
-                print(f"WARNING past season {cat} {s}: {e}")
-                continue
-            for f in fencers:
-                if f["total"] > 0 and f["id"] not in current_ids:
-                    found[f["id"]] = [label(f["name"], 1), label(f["name"], 99), f["club"]]
+    for gname, g in GENDERS.items():
+        for cat in CATS:
+            for s in range(max(2022, season - 5), season):
+                try:
+                    time.sleep(3)
+                    _, fencers = parse(fetch(cat, s, g))
+                except Exception as e:
+                    print(f"WARNING past season {gname} {cat} {s}: {e}")
+                    continue
+                for f in fencers:
+                    if f["total"] > 0 and f["id"] not in current_ids:
+                        found[f["id"]] = [label(f["name"], 1), label(f["name"], 99), f["club"]]
     print("past participants found:", len(found))
     return found
-
 
 def update_profiles(data, now, alumni):
     """Cache each ranked fencer's full competition history in profiles.json.
@@ -210,9 +211,10 @@ def update_profiles(data, now, alumni):
         with open("profiles.json", encoding="utf-8") as fh:
             old = json.load(fh).get("p", {})
     sigs = {}
-    for cat in CATS:
-        for f in data[cat.lower()]["f"]:
-            sigs.setdefault(str(f[0]), []).append([cat, f[4]])
+    for gname in GENDERS:
+        for cat in CATS:
+            for f in data.get(gname, {}).get(cat.lower(), {}).get("f", []):
+                sigs.setdefault(str(f[0]), []).append([cat, f[4]] if gname == "women" else ["m", cat, f[4]])
     for fid in alumni:
         sigs.setdefault(str(fid), ["past"])  # past participants: history no longer changes
     today = now.date()
@@ -287,9 +289,10 @@ def update_competitions(data, now):
         with open("competitions.json", encoding="utf-8") as fh:
             old = json.load(fh).get("c", {})
     events = {}
-    for cat in CATS:
-        for d, n, cid in data[cat.lower()]["ev"]:
-            events[str(cid)] = d
+    for gname in GENDERS:
+        for cat in CATS:
+            for d, n, cid in data.get(gname, {}).get(cat.lower(), {}).get("ev", []):
+                events[str(cid)] = d
     today = now.date()
     new, fetched, failed = {}, 0, 0
     for cid, d in sorted(events.items(), key=lambda kv: kv[1]):
@@ -325,9 +328,10 @@ def save_snapshot(data, season, now):
             snaps = json.load(fh).get("snaps", [])
     today = now.strftime("%Y-%m-%d")
     snap = {"d": today, "s": season}
-    for cat in CATS:
-        snap[cat.lower()] = [[f[0], f[3], f[3] + sum(sorted(f[4], reverse=True)[:4])]
-                             for f in data[cat.lower()]["f"]]
+    for gname in GENDERS:
+        for cat in CATS:
+            snap[f"{gname}_{cat.lower()}"] = [[f[0], f[3], f[3] + sum(sorted(f[4], reverse=True)[:4])]
+                                              for f in data.get(gname, {}).get(cat.lower(), {}).get("f", [])]
     snaps = [x for x in snaps if x.get("d") != today] + [snap]
     with open("history.json", "w", encoding="utf-8") as fh:
         json.dump({"snaps": snaps}, fh, separators=(",", ":"))
@@ -336,19 +340,32 @@ def save_snapshot(data, season, now):
 
 def main():
     season = int(os.environ.get("SEASON") or season_start())
-    data = {}
-    for i, cat in enumerate(CATS):
-        if i:
-            time.sleep(3)  # be gentle with the server
-        data[cat.lower()] = build(cat, season)
-    data["season"] = season
-    data["stars"] = sorted({i for c in CATS for i in data[c.lower()].pop("st")})  # fencers marked * on the site
-    now = dt.datetime.now(dt.timezone(dt.timedelta(hours=8)))
-
     old = None
     if os.path.exists("data.json"):
         with open("data.json", encoding="utf-8") as fh:
             old = json.load(fh)
+
+    data, stars, first = {g: {} for g in GENDERS}, set(), True
+    for gname, g in GENDERS.items():
+        try:
+            got = {}
+            for cat in CATS:
+                if not first:
+                    time.sleep(3)  # be gentle with the server
+                first = False
+                got[cat.lower()] = build(cat, season, g)
+            data[gname] = got
+            stars |= {i for c in got.values() for i in c.pop("st")}  # fencers marked * on the site
+        except Exception as e:
+            if gname == "women":
+                raise  # the main dashboard must never publish wrong or partial data
+            print(f"::warning::{gname}'s rankings could not be read, keeping the previous copy: {e}")
+            data[gname] = (old or {}).get(gname) or {}
+            stars |= set((old or {}).get("stars", []))
+    data["season"] = season
+    data["stars"] = sorted(stars)
+    now = dt.datetime.now(dt.timezone(dt.timedelta(hours=8)))
+
     if old and {k: v for k, v in old.items() if k != "generated"} == data:
         print("data.json: no change")
     else:
@@ -362,7 +379,7 @@ def main():
     except Exception as e:  # never block the rankings update
         print(f"::warning::competition step failed: {e}")
     try:
-        current_ids = {f[0] for cat in CATS for f in data[cat.lower()]["f"]}
+        current_ids = {f[0] for g in GENDERS for c in data.get(g, {}).values() for f in c.get("f", [])}
         update_profiles(data, now, past_participants(season, current_ids))
     except Exception as e:  # never block the rankings update
         print(f"::warning::profile step failed: {e}")
