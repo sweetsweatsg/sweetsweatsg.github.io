@@ -17,6 +17,7 @@ from bs4 import BeautifulSoup
 URL = "https://my.fencingsingapore.org.sg/showranks"
 CATS = ["Cadet", "Junior", "Senior"]
 GENDERS = {"women": "Female", "men": "Male"}
+WEAPONS = {"sabre": "Sabre", "foil": "Foil"}
 HEADERS = {"User-Agent": "sabre-dashboard/1.0 (personal project; 3 requests per day)"}
 DATE = re.compile(r"\d{4}-\d{2}-\d{2}")
 
@@ -27,11 +28,11 @@ def season_start(today=None):
     return t.year if t.month >= 6 else t.year - 1
 
 
-def fetch(cat, season, gender="Female"):
+def fetch(cat, season, gender="Female", weapon="Sabre"):
     params = {
         "rankingmethod[category]": cat,
         "rankingmethod[gender]": gender,
-        "rankingmethod[weapon]": "Sabre",
+        "rankingmethod[weapon]": weapon,
         "rankingmethod[windowlength]": season,
         "commit": "Search",
     }
@@ -114,14 +115,21 @@ def parse(html):
     return events, fencers
 
 
-def check(cat, fencers):
-    """Total must equal best-4 event scores + base points (true for every row checked by hand)."""
+def best_n(html):
+    """How many event scores count towards the total (4 or 5). Read from the 'Total Best (N) Scores' header:
+    it differs by weapon and level (e.g. 5 for Junior and Senior foil, 4 for sabre)."""
+    m = re.search(r"Best\s*\((\d+)\)", BeautifulSoup(html, "html.parser").get_text(" "))
+    return int(m.group(1)) if m else 4
+
+
+def check(cat, fencers, n=4):
+    """Total must equal best-N event scores + base points (verified by hand on every level read so far)."""
     if len(fencers) < 5:
         raise ValueError(f"{cat}: only {len(fencers)} fencers parsed")
     bad = [f["name"] for f in fencers
-           if sum(sorted(f["pts"], reverse=True)[:4]) + f["base"] != f["total"]]
+           if sum(sorted(f["pts"], reverse=True)[:n]) + f["base"] != f["total"]]
     if len(bad) > 0.1 * len(fencers):
-        raise ValueError(f"{cat}: {len(bad)} rows fail the best-4 + base check, e.g. {bad[:3]}")
+        raise ValueError(f"{cat}: {len(bad)} rows fail the best-{n} + base check, e.g. {bad[:3]}")
     return bad
 
 
@@ -131,16 +139,19 @@ def label(name, words):
     return " ".join((sur.split() + given.split()[:words])).title()
 
 
-def build(cat, season, gender="Female"):
-    events, fencers = parse(fetch(cat, season, gender))
-    bad = check(cat, fencers)
+def build(cat, season, gender="Female", weapon="Sabre"):
+    html = fetch(cat, season, gender, weapon)
+    events, fencers = parse(html)
+    bn = best_n(html)
+    bad = check(cat, fencers, bn)
     if bad:
         print(f"WARNING {cat}: total mismatch for {bad}")
     keep = sorted((f for f in fencers if f["total"] > 0), key=lambda f: -f["total"])
     short = [label(f["name"], 1) for f in keep]
-    out = [[f["id"], label(f["name"], 2 if short.count(s) > 1 else 1), f["club"], f["base"], f["pts"], label(f["name"], 99), f["school"], 1 if f["star"] else 0]
-           for f, s in zip(keep, short)]
-    return {"ev": [[d, n, cid] for _, d, n, cid in events], "f": out,
+    out = [[f["id"], label(f["name"], 2 if short.count(sh) > 1 else 1), f["club"], f["base"], f["pts"],
+            label(f["name"], 99), f["school"], 1 if f["star"] else 0]
+           for f, sh in zip(keep, short)]
+    return {"ev": [[d, n, cid] for _, d, n, cid in events], "f": out, "b": bn,
             "st": sorted(f["id"] for f in fencers if f["star"])}
 
 
@@ -187,20 +198,30 @@ def past_participants(season, current_ids):
     """Fencers ranked in earlier seasons (via the site's season selector) who are not ranked now.
     Only used to discover profile ids; ranks themselves come from each profile."""
     found = {}
-    for gname, g in GENDERS.items():
-        for cat in CATS:
-            for s in range(max(2022, season - 5), season):
-                try:
-                    time.sleep(3)
-                    _, fencers = parse(fetch(cat, s, g))
-                except Exception as e:
-                    print(f"WARNING past season {gname} {cat} {s}: {e}")
-                    continue
-                for f in fencers:
-                    if f["total"] > 0 and f["id"] not in current_ids:
-                        found[f["id"]] = [label(f["name"], 1), label(f["name"], 99), f["club"]]
+    for wname, w in WEAPONS.items():
+        for gname, g in GENDERS.items():
+            for cat in CATS:
+                for s in range(max(2022, season - 5), season):
+                    try:
+                        time.sleep(3)
+                        _, fencers = parse(fetch(cat, s, g, w))
+                    except Exception as e:
+                        print(f"WARNING past season {wname} {gname} {cat} {s}: {e}")
+                        continue
+                    for f in fencers:
+                        if f["total"] > 0 and f["id"] not in current_ids:
+                            found[f["id"]] = [label(f["name"], 1), label(f["name"], 99), f["club"]]
     print("past participants found:", len(found))
     return found
+
+
+def datasets(data):
+    """Yield (weapon, gender, level, dataset) for every ranking table in data."""
+    for w, wd in data.get("weapons", {}).items():
+        for g, gd in wd.items():
+            for cat, ds in gd.items():
+                yield w, g, cat, ds
+
 
 def update_profiles(data, now, alumni):
     """Cache each ranked fencer's full competition history in profiles.json.
@@ -211,10 +232,10 @@ def update_profiles(data, now, alumni):
         with open("profiles.json", encoding="utf-8") as fh:
             old = json.load(fh).get("p", {})
     sigs = {}
-    for gname in GENDERS:
-        for cat in CATS:
-            for f in data.get(gname, {}).get(cat.lower(), {}).get("f", []):
-                sigs.setdefault(str(f[0]), []).append([cat, f[4]] if gname == "women" else ["m", cat, f[4]])
+    for w, g, cat, ds in datasets(data):
+        tag = [] if (w, g) == ("sabre", "women") else (["m"] if (w, g) == ("sabre", "men") else [w, g])
+        for f in ds.get("f", []):
+            sigs.setdefault(str(f[0]), []).append(tag + [cat.capitalize(), f[4]])
     for fid in alumni:
         sigs.setdefault(str(fid), ["past"])  # past participants: history no longer changes
     today = now.date()
@@ -289,10 +310,9 @@ def update_competitions(data, now):
         with open("competitions.json", encoding="utf-8") as fh:
             old = json.load(fh).get("c", {})
     events = {}
-    for gname in GENDERS:
-        for cat in CATS:
-            for d, n, cid in data.get(gname, {}).get(cat.lower(), {}).get("ev", []):
-                events[str(cid)] = d
+    for w, g, cat, ds in datasets(data):
+        for d, n, cid in ds.get("ev", []):
+            events[str(cid)] = d
     today = now.date()
     new, fetched, failed = {}, 0, 0
     for cid, d in sorted(events.items(), key=lambda kv: kv[1]):
@@ -328,10 +348,10 @@ def save_snapshot(data, season, now):
             snaps = json.load(fh).get("snaps", [])
     today = now.strftime("%Y-%m-%d")
     snap = {"d": today, "s": season}
-    for gname in GENDERS:
-        for cat in CATS:
-            snap[f"{gname}_{cat.lower()}"] = [[f[0], f[3], f[3] + sum(sorted(f[4], reverse=True)[:4])]
-                                              for f in data.get(gname, {}).get(cat.lower(), {}).get("f", [])]
+    for w, g, cat, ds in datasets(data):
+        key = f"{g}_{cat}" if w == "sabre" else f"{w}_{g}_{cat}"
+        k = ds.get("b", 4)
+        snap[key] = [[f[0], f[3], f[3] + sum(sorted(f[4], reverse=True)[:k])] for f in ds.get("f", [])]
     snaps = [x for x in snaps if x.get("d") != today] + [snap]
     with open("history.json", "w", encoding="utf-8") as fh:
         json.dump({"snaps": snaps}, fh, separators=(",", ":"))
@@ -345,25 +365,34 @@ def main():
         with open("data.json", encoding="utf-8") as fh:
             old = json.load(fh)
 
-    data, stars, first = {g: {} for g in GENDERS}, set(), True
-    for gname, g in GENDERS.items():
-        try:
-            got = {}
-            for cat in CATS:
-                if not first:
-                    time.sleep(3)  # be gentle with the server
-                first = False
-                got[cat.lower()] = build(cat, season, g)
-            data[gname] = got
-            stars |= {i for c in got.values() for i in c.pop("st")}  # fencers marked * on the site
-        except Exception as e:
-            if gname == "women":
-                raise  # the main dashboard must never publish wrong or partial data
-            print(f"::warning::{gname}'s rankings could not be read, keeping the previous copy: {e}")
-            data[gname] = (old or {}).get(gname) or {}
-            stars |= set((old or {}).get("stars", []))
-    data["season"] = season
-    data["stars"] = sorted(stars)
+    def old_group(w, g):  # previous copy of one weapon/gender group (also reads the older file layouts)
+        if not old:
+            return {}
+        if "weapons" in old:
+            return old["weapons"].get(w, {}).get(g) or {}
+        return (old.get(g) or {}) if w == "sabre" else {}
+
+    weapons = {w: {} for w in WEAPONS}
+    stars, first = set(), True
+    for wname, w in WEAPONS.items():
+        for gname, g in GENDERS.items():
+            try:
+                got = {}
+                for cat in CATS:
+                    if not first:
+                        time.sleep(3)  # be gentle with the server
+                    first = False
+                    got[cat.lower()] = build(cat, season, g, w)
+                weapons[wname][gname] = got
+                stars |= {i for c in got.values() for i in c.pop("st")}  # fencers marked * on the site
+            except Exception as e:
+                if (wname, gname) == ("sabre", "women"):
+                    raise  # the main dashboard must never publish wrong or partial data
+                print(f"::warning::{wname} {gname} could not be read, keeping the previous copy: {e}")
+                weapons[wname][gname] = old_group(wname, gname)
+                stars |= set((old or {}).get("stars", []))
+    data = {"weapons": {w: {g: v for g, v in gd.items() if v} for w, gd in weapons.items() if any(gd.values())},
+            "season": season, "stars": sorted(stars)}
     now = dt.datetime.now(dt.timezone(dt.timedelta(hours=8)))
 
     if old and {k: v for k, v in old.items() if k != "generated"} == data:
@@ -379,7 +408,7 @@ def main():
     except Exception as e:  # never block the rankings update
         print(f"::warning::competition step failed: {e}")
     try:
-        current_ids = {f[0] for g in GENDERS for c in data.get(g, {}).values() for f in c.get("f", [])}
+        current_ids = {f[0] for w, g, c, ds in datasets(data) for f in ds.get("f", [])}
         update_profiles(data, now, past_participants(season, current_ids))
     except Exception as e:  # never block the rankings update
         print(f"::warning::profile step failed: {e}")
