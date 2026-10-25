@@ -43,7 +43,9 @@ jobs:
         run: |
           mkdir site
           cp index.html rankings.html data.json history.json profiles.json competitions.json site/
-          cp logo.jpg site/ || echo "::warning::logo.jpg is missing from the repo root, so the site is built without the logo"
+          if [ -f logo.jpg ]; then cp logo.jpg site/logo.jpg
+          elif [ -f Logo.jpg ]; then cp Logo.jpg site/logo.jpg
+          else echo "::warning::No logo.jpg or Logo.jpg in the repo root, so the site is built without the logo"; fi
 
       - uses: actions/upload-pages-artifact@v3
         with:
