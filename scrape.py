@@ -17,7 +17,7 @@ from bs4 import BeautifulSoup
 URL = "https://my.fencingsingapore.org.sg/showranks"
 CATS = ["Cadet", "Junior", "Senior"]
 GENDERS = {"women": "Female", "men": "Male"}
-WEAPONS = {"sabre": "Sabre", "foil": "Foil"}
+WEAPONS = {"sabre": "Sabre", "foil": "Foil", "epee": "Epee"}
 HEADERS = {"User-Agent": "sabre-dashboard/1.0 (personal project; 3 requests per day)"}
 DATE = re.compile(r"\d{4}-\d{2}-\d{2}")
 
