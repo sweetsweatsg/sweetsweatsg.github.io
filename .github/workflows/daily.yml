@@ -40,7 +40,7 @@ jobs:
           git diff --cached --quiet || (git commit -m "Update rankings $(date -u +%F)" && git push)
 
       - name: Build site folder
-        run: mkdir site && cp index.html data.json history.json profiles.json competitions.json site/
+        run: mkdir site && cp index.html rankings.html logo.jpg data.json history.json profiles.json competitions.json site/
 
       - uses: actions/upload-pages-artifact@v3
         with:
