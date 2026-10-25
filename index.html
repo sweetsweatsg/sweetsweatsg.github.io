@@ -17,8 +17,8 @@ th,td{padding:6px 8px;text-align:left;border-bottom:1px solid var(--bd);white-sp
 tr{cursor:pointer}tr.on{background:var(--hi)}.up{color:var(--up)}.dn{color:var(--dn)}.ax{font-size:11px;fill:var(--mu)}svg text{font-family:inherit}.d{opacity:.5}
 .bd{font-size:11px;color:var(--mu);border:1px solid var(--bd);border-radius:6px;padding:0 5px}
 </style></head><body><main>
-<h1 id="ttl">Singapore women's sabre rankings</h1>
-<p class="mu"><span id="asof">Loading…</span> · tap a fencer to follow them across the chart and the other levels<span id="views"></span></p>
+<div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap"><h1 id="ttl">Singapore women's sabre rankings</h1><span id="views" class="mu" style="margin:0;white-space:nowrap"></span></div>
+<p class="mu"><span id="asof">Loading…</span> · tap a fencer to follow them across the chart and the other levels</p>
 <div id="wtabs"></div><div id="gtabs"></div><div id="tabs"></div><div id="sel"></div>
 <div id="cat"><div id="kpi" class="k"></div><p class="mu" style="margin-top:-4px">Top 3 by ranking points, including fencers marked *; the Top 8 card leaves them out. Selection rules (eligibility, minimum events, etc.) are not applied here. Base points shrink every day, so rankings that lean on them will change.</p>
 <div class="card"><input id="q" type="search" placeholder="Search fencer or club" oninput="tbl()"><div class="wrap"><table id="tb"></table></div></div>
@@ -34,14 +34,14 @@ let D={cadet:{ev:[],f:[]},junior:{ev:[],f:[]},senior:{ev:[],f:[]}},H=[],P={},CP=
 const C={cadet:"Cadet",junior:"Junior",senior:"Senior"},K=["#0b6e4f","#2563eb","#d97706","#9333ea","#dc2626","#0891b2","#65a30d","#db2777","#64748b","#92400e","#ca8a04"];
 const $=id=>document.getElementById(id),fm=d=>new Date(d).toLocaleDateString("en-GB",{day:"numeric",month:"short"}),nm=x=>x[5]||x[1],idle=x=>!x[4].some(v=>v>0);
 function calc(c){const{ev,f}=D[c],S=[];for(let k=0;k<=ev.length;k++){const t=f.map(x=>x[4].slice(0,k).sort((a,b)=>b-a).slice(0,D[c].b||4).reduce((a,b)=>a+b,0)+x[3]);S.push({t,r:t.map(v=>1+t.filter(u=>u>v).length)})}return S}
-const sl=g=>Object.assign({season:ALL.season,generated:ALL.generated,stars:ALL.stars||[]},(ALL.weapons[wp]||{})[g]||{}),hasM=()=>!!((ALL.weapons[wp]||{}).men&&ALL.weapons[wp].men.cadet);
+const WL={sabre:"Sabre",foil:"Foil",epee:"Epee"};const sl=g=>Object.assign({season:ALL.season,generated:ALL.generated,stars:ALL.stars||[]},(ALL.weapons[wp]||{})[g]||{}),hasM=()=>!!((ALL.weapons[wp]||{}).men&&ALL.weapons[wp].men.cadet);
 function setWp(w){wp=w;if(gen=="men"&&!hasM())gen="women";D=sl(gen);sel=null;cc=null;go();render()}
 function setGen(g){gen=g;D=sl(g);sel=null;cc=null;go();render()}
-function go(){history.replaceState(null,"","#"+(wp=="foil"?"foil-":"")+(gen=="men"?"men-":"")+cat+(sel?"-"+sel:""))}
+function go(){history.replaceState(null,"","#"+(wp!="sabre"?wp+"-":"")+(gen=="men"?"men-":"")+cat+(sel?"-"+sel:""))}
 function pick(id){sel=sel==id?null:id;go();render()}
 function hv(id){const a=sel||id;document.querySelectorAll("#chart g[data-id]").forEach(g=>g.style.opacity=!a||g.dataset.id==a?1:0.15)}
 function srt(k){sd=sk==k?-sd:1;sk=k;tbl()}
-function tabs(){const ws=["sabre","foil"].filter(w=>ALL&&ALL.weapons[w]&&ALL.weapons[w].women&&ALL.weapons[w].women.cadet);$("wtabs").innerHTML=ws.length>1?ws.map(w=>`<button class="${w==wp?"on":""}" onclick="setWp('${w}')">${w=="foil"?"Foil":"Sabre"}</button>`).join("")+'<span style="margin-right:10px"></span>':"";$("gtabs").innerHTML=ALL&&hasM()?["women","men"].map(g=>`<button class="${g==gen?"on":""}" onclick="setGen('${g}')">${g=="men"?"Men":"Women"}</button>`).join("")+'<span style="margin-right:10px"></span>':"";$("ttl").textContent="Singapore "+(gen=="men"?"men's":"women's")+" "+(wp=="foil"?"foil":"sabre")+" rankings";$("tabs").innerHTML=Object.keys(C).map(c=>`<button class="${c==cat?"on":""}" onclick="cat='${c}';go();render()">${C[c]}</button>`).join("")}
+function tabs(){const ws=Object.keys(WL).filter(w=>ALL&&ALL.weapons[w]&&ALL.weapons[w].women&&ALL.weapons[w].women.cadet);$("wtabs").innerHTML=ws.length>1?ws.map(w=>`<button class="${w==wp?"on":""}" onclick="setWp('${w}')">${WL[w]}</button>`).join("")+'<span style="margin-right:10px"></span>':"";$("gtabs").innerHTML=ALL&&hasM()?["women","men"].map(g=>`<button class="${g==gen?"on":""}" onclick="setGen('${g}')">${g=="men"?"Men":"Women"}</button>`).join("")+'<span style="margin-right:10px"></span>':"";$("ttl").textContent="Singapore "+(gen=="men"?"men's":"women's")+" "+wp+" rankings";$("tabs").innerHTML=Object.keys(C).map(c=>`<button class="${c==cat?"on":""}" onclick="cat='${c}';go();render()">${C[c]}</button>`).join("")}
 function render(){
 tabs();
 const{ev,f}=D[cat],S=calc(cat),n=ev.length;G={ev,f,S,n,L:S[n],bn:D[cat].b||4};selp();
@@ -61,7 +61,7 @@ function hist(id){const e=((P[id]||{}).e||[]).filter(x=>!/^[MW][SFE] \w+ \d{4}-\
 return`<h2 style="margin-top:14px">All competitions (${s.length})</h2><p class="mu">${pod} podium finish${pod==1?"":"es"} · best finish ${best}${s.some(x=>!x[2].startsWith("Singapore"))?" · includes overseas events":""}</p><div class="wrap" style="max-height:360px;overflow:auto"><table><tr><th>Date<th>Competition<th>Where<th>Category<th>Counts for<th>Place<th>Points</tr>`+s.map(x=>`<tr style="cursor:default"><td>${x[0]}<td>${CP[x[7]]?`<a href="#" onclick="openComp(${x[7]});return false" style="color:var(--ac)">${x[1]}</a>`:x[1]}<td>${x[2]}<td>${x[3].replace("Individual ","")}<td>${x[4]}<td>${x[5]}<td>${x[6]}`).join("")+`</table></div>`}
 function kpi(){const{f,L}=G,od=f.map((x,i)=>i).sort((a,b)=>L.r[a]-L.r[b]||L.t[b]-L.t[a]),tp=od.slice(0,10),t3=od.slice(0,3);G.od=od;G.tp=tp;
 const s0=D.season+"-06-01",s1=(D.season+1)+"-06-01",pl=(n,w)=>n+" "+w+(n==1?"":"s");
-const card=(i,k)=>{const x=f[i],e=((P[x[0]]||{}).e||[]).filter(v=>v[0]>=s0&&v[0]<s1&&v[4].includes(C[cat])&&v[3].includes(wp=="foil"?"Foil":"Sabre")&&!/^[MW][SFE] \w+ \d{4}-\d{4}$/.test(v[1])),w=e.filter(v=>v[5]==1).length,pd=e.filter(v=>v[5]>0&&v[5]<=3).length,n=x[4].filter(v=>v>0).length,nx=od[k+1];
+const card=(i,k)=>{const x=f[i],e=((P[x[0]]||{}).e||[]).filter(v=>v[0]>=s0&&v[0]<s1&&v[4].includes(C[cat])&&v[3].includes(WL[wp])&&!/^[MW][SFE] \w+ \d{4}-\d{4}$/.test(v[1])),w=e.filter(v=>v[5]==1).length,pd=e.filter(v=>v[5]>0&&v[5]<=3).length,n=x[4].filter(v=>v>0).length,nx=od[k+1];
 return`<div class="pc" style="cursor:pointer" onclick="pick(${x[0]})"><span>#${L.r[i]}${x[2]?" · "+x[2]:""}</span><b>${nm(x)}</b><span>${L.t[i].toLocaleString()} pts · ${Math.round(100*x[3]/L.t[i])}% base</span>${n?`<span>${pl(n,"scoring event")}${e.length?" · "+pl(w,"win")+" · "+pl(pd,"podium"):""}</span>`:`<span style="color:var(--dn)">No events this season</span>`}${nx!=null?`<span>${(L.t[i]-L.t[nx]).toLocaleString()} pts ahead of #${L.r[nx]}</span>`:""}</div>`};
 const t4=x=>[...x[4]].sort((a,b)=>b-a).slice(0,G.bn).reduce((a,b)=>a+b,0),eo=f.map((x,i)=>i).sort((a,b)=>t4(f[b])-t4(f[a])).slice(0,3),same=eo.every(i=>t3.includes(i));
 $("kpi").innerHTML=t3.map((i,k)=>card(i,k)).join("")+(od[3]!=null?`<div><span>Cut line (#3 vs #4)</span><b>${(L.t[od[2]]-L.t[od[3]]).toLocaleString()} pts</b><span>#4 is ${nm(f[od[3]])}</span></div>`:"")+`<div><span>Top 3 on event scores alone (no base points)</span>${eo.map((i,k)=>`<span style="color:var(--fg)">${k+1}. ${nm(f[i])} · ${t4(f[i]).toLocaleString()}</span>`).join("")}<span>${same?"Same fencers as the current top 3":"Differs from the current top 3"}</span></div>`+`<div><span>Top 8 (excl. *)</span><span style="columns:2;column-gap:12px">${od.filter(i=>!f[i][7]).slice(0,8).map((i,k)=>`<span style="color:var(--fg)" title="${nm(f[i])}">${k+1}. ${f[i][1]}</span>`).join("")}</span><span>Leaves out fencers marked * on the federation site; renumbered</span></div>`}
@@ -73,7 +73,7 @@ const key=cols[sk][1];rows.sort((a,b)=>{const x=key(a),y=key(b);return(x>y?1:x<y
 $("tb").innerHTML="<tr>"+cols.map((c,j)=>c[1]?`<th onclick="srt(${j})">${c[0]}${sk==j?(sd>0?" ▲":" ▼"):""}`:`<th>${c[0]}`).join("")+"</tr>"+rows.map(i=>{const x=f[i];return`<tr class="${x[0]==sel?"on":""}" onmouseenter="hv(${x[0]})" onmouseleave="hv(null)" onclick="pick(${x[0]})"><td>${L.r[i]}<td>${nm(x)}${idle(x)?' <span class="bd">no events</span>':""}<td>${x[2]}<td>${L.t[i].toLocaleString()}<td>${L.t[i]?Math.round(100*x[3]/L.t[i]):0}%<td>${spark(i)}<td>${gap(i)||"–"}`}).join("")}
 function series(){const{ev,f,S}=G;
 if(mode=="event"){const R={},T={};f.forEach((x,i)=>{R[x[0]]=S.map(s=>s.r[i]);T[x[0]]=S.map(s=>s.t[i])});return{lab:["Start",...ev.map(e=>e[1])],tip:["Base points only",...ev.map(e=>fm(e[0]))],R,T,note:"Estimate: today's base points are applied to earlier dates, but base points shrink over time, so earlier ranks are approximate."}}
-const AG=C[cat],ok=a=>a[1]==AG&&a[2]==(wp=="foil"?"Foil":"Sabre")&&a[3]==(gen=="men"?"Male":"Female"),yr=new Set();
+const AG=C[cat],ok=a=>a[1]==AG&&a[2]==WL[wp]&&a[3]==(gen=="men"?"Male":"Female"),yr=new Set();
 Object.values(P).forEach(p=>(p.r||[]).forEach(a=>{if(ok(a))yr.add(a[0])}));
 const ys=[...yr].filter(y=>y<D.season).sort((a,b)=>a-b);ys.push(D.season);const R={},T={},ext=[];
 const get=(rr,y,k)=>((rr.find(a=>a[0]==y&&ok(a))||[])[k])||null;
@@ -111,10 +111,10 @@ const mix=(ix,t)=>{const m={};tp.forEach(i=>{const k=f[i][ix]||"Not listed";m[k]
 $("club").innerHTML=mix(2,"By club")+mix(6,"By school")+`<p class="mu">A fencer can have a club, a school, or both, and the federation site often lists only one. "Not listed" means the site shows nothing for that field.</p>`}
 const J=u=>fetch(u+"?"+Date.now()).then(r=>r.ok?r.json():null).catch(()=>null);
 Promise.all([J("data.json"),J("profiles.json"),J("competitions.json")]).then(([j,pr,cp])=>{if(!j)throw 0;ALL=j.weapons?j:{season:j.season,generated:j.generated,stars:j.stars,weapons:{sabre:j.women?{women:j.women,men:j.men}:{women:{cadet:j.cadet,junior:j.junior,senior:j.senior}}}};P=(pr&&pr.p)||{};CP=(cp&&cp.c)||{};
-const m=location.hash.slice(1).split("-");if(m[0]=="foil"||m[0]=="sabre")wp=m.shift();if(!ALL.weapons[wp])wp="sabre";if(m[0]=="men"||m[0]=="women")gen=m.shift();if(gen=="men"&&!hasM())gen="women";D=sl(gen);if(C[m[0]])cat=m[0];if(+m[1])sel=+m[1];
+const m=location.hash.slice(1).split("-");if(WL[m[0]])wp=m.shift();if(!ALL.weapons[wp])wp="sabre";if(m[0]=="men"||m[0]=="women")gen=m.shift();if(gen=="men"&&!hasM())gen="women";D=sl(gen);if(C[m[0]])cat=m[0];if(+m[1])sel=+m[1];
 $("asof").textContent="Season "+j.season+"–"+(j.season+1)+" · data as at "+j.generated+" SGT";render()}).catch(()=>{$("asof").textContent="Could not load data.json"});
 // Total-views counter (GoatCounter: free, no cookies). Set GC to your GoatCounter site code; leave "" to switch it off.
 const GC="sweetsweatsg";
 (function(){if(!GC)return;const u="https://"+GC+".goatcounter.com",s=document.createElement("script");s.async=true;s.src="https://gc.zgo.at/count.js";s.dataset.goatcounter=u+"/count";document.head.appendChild(s);
-fetch(u+"/counter/TOTAL.json").then(r=>r.json()).then(j=>{if(j&&j.count)$("views").textContent=" · "+j.count+" total views"}).catch(()=>{})})();
+fetch(u+"/counter/TOTAL.json").then(r=>r.json()).then(j=>{if(j&&j.count)$("views").textContent=j.count+" total views"}).catch(()=>{})})();
 </script></body></html>
