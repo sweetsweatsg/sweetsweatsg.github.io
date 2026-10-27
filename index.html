@@ -111,6 +111,20 @@ mark{background:var(--brass-l);color:var(--navy);padding:0 2px}
 #clist{margin:8px 0 22px;display:flex;gap:8px;flex-wrap:wrap}
 label.mu{display:inline-block;margin-right:22px;cursor:pointer}
 input[type=checkbox]{accent-color:var(--steel-d);width:15px;height:15px;vertical-align:-2px}
+.about{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:start}
+.about .ab-lead{font:400 clamp(22px,2.6vw,30px)/1.3 var(--serif);letter-spacing:-.01em;margin:0 0 28px;max-width:20em}
+.about .soc{display:flex;flex-wrap:wrap;gap:12px 28px}
+.about .soc a{font:500 11.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;text-decoration:none;color:var(--navy);border-bottom:1px solid var(--brass);padding-bottom:3px}
+.about .soc a:hover{color:var(--brass-d)}
+.about .soc small{display:block;font:400 11px var(--mono);letter-spacing:.04em;text-transform:none;color:var(--mu);margin-top:6px;border:0}
+.built{list-style:none;margin:0;padding:0;counter-reset:b}
+.built li{counter-increment:b;display:grid;grid-template-columns:36px 1fr;gap:4px 12px;padding:20px 0;border-top:1px solid rgba(14,23,38,.18)}
+.built li:last-child{border-bottom:1px solid rgba(14,23,38,.18)}
+.built li:before{content:counter(b,decimal-leading-zero);font:500 12px var(--mono);color:var(--brass-d);padding-top:6px}
+.built h3{font:500 22px/1.2 var(--serif);margin:0}.built h3 a{color:inherit;text-decoration:none;border-bottom:1px solid var(--brass)}
+.built p a{color:var(--navy);border-bottom:1px solid var(--brass);text-decoration:none}.built p{grid-column:2;margin:0;color:var(--mu);font-size:14.5px;max-width:44ch}
+.built .tag{font:500 10.5px var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--brass-d);margin-left:10px;vertical-align:middle}
+@media(max-width:760px){.about{grid-template-columns:1fr;gap:40px}}
 .js .rv{opacity:0;transform:translateY(14px);transition:opacity .7s var(--ease),transform .7s var(--ease)}
 .js .rv.go{opacity:1;transform:none}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}.js .rv{opacity:1;transform:none}}
@@ -149,6 +163,14 @@ input[type=checkbox]{accent-color:var(--steel-d);width:15px;height:15px;vertical
 <p class="lab2">Gold medals won by Singapore&rsquo;s fencers at the SEA Games</p><div class="sea" id="sea"></div>
 <span class="src">Sources: <a href="https://en.wikipedia.org/wiki/Singapore_at_the_2021_SEA_Games">2021 Games</a> &middot; <a href="https://en.wikipedia.org/wiki/Singapore_at_the_2023_SEA_Games">2023</a> &middot; <a href="https://en.wikipedia.org/wiki/Singapore_at_the_2025_SEA_Games">2025</a></span>
 <div id="tl" style="margin-top:48px"></div></div></section>
+<section class="band tone" id="about"><div class="in"><div class="sech"><span class="no">03</span><h2>About Nicki</h2></div>
+<div class="about"><div><p class="ab-lead">Nicki is a Team Singapore fencer and the builder behind SweetSweat.</p>
+<div class="soc"><a href="https://www.instagram.com/nickiwongez/" target="_blank" rel="noopener">Instagram &#8599;<small>@nickiwongez</small></a><a href="https://www.instagram.com/sweetsweat.sg/" target="_blank" rel="noopener">Community Instagram &#8599;<small>@sweetsweat.sg</small></a></div></div>
+<ol class="built">
+<li><h3><a href="https://sweetsweat.sg" target="_blank" rel="noopener">Train your brain to win</a></h3><p>Free mental performance training for young athletes at sweetsweat.sg.</p></li>
+<li><h3><a href="#">Fencing Singapore Ranking</a></h3><p>This site. Rankings for every weapon and age group, refreshed each morning from the Fencing Singapore results.</p></li>
+<li><h3>Training Tracker<span class="tag">Trial by request</span></h3><p>A private training log. <a href="https://www.instagram.com/nickiwongez/" target="_blank" rel="noopener">DM @nickiwongez on Instagram</a> to request a trial.</p></li>
+</ol></div></div></section>
 <footer class="foot"><div class="in"><p><b>SweetSweat</b> makes free mental performance training for young athletes. <a href="https://sweetsweat.sg" target="_blank" rel="noopener">Visit sweetsweat.sg &#8599;</a></p>
 <p>Rankings come from <a href="https://my.fencingsingapore.org.sg/showranks" target="_blank" rel="noopener">Fencing Singapore</a> and refresh every morning. Highlights are summarised from the public sources linked on each entry. This is an unofficial fan project. For corrections or removal requests, get in touch through sweetsweat.sg.</p></div></footer>
 <script>
