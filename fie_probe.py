@@ -1,66 +1,42 @@
-"""One-off probe: finds out how fie.org exposes athlete + ranking data.
-Writes everything it learns to fie_probe.txt. Changes nothing else."""
-import json, sys, requests
+"""Probe 2: fetch the FIE pages directly (no browser) and report what is inside the page data."""
+import re, requests
 out = []
 def log(*a):
     s = " ".join(str(x) for x in a); print(s); out.append(s)
 
 UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36"
 H = {"User-Agent": UA, "Accept-Language": "en"}
-
-log("== 1. Plain HTTP requests ==")
-for u in ["https://fie.org/", "https://fie.org/athletes", "https://fie.org/robots.txt",
-          "https://fie.org/athletes/ranking", "https://fie.org/rankings"]:
+BASE = "https://fie.org"
+URLS = [
+  "/athletes?country=SGP&weapon=S&gender=F",
+  "/athletes?weapon=S&gender=F",
+  "/athletes/detailed-ranking?season=2027&weapon=S&gender=F&category=S&type=I",
+  "/athletes/detailed-ranking?season=2027&weapon=S&gender=F&category=J&type=I",
+  "/athletes/54369",
+]
+for path in URLS:
+    log("\n" + "=" * 70); log("GET", BASE + path)
     try:
-        r = requests.get(u, headers=H, timeout=30)
-        log(f"GET {u} -> {r.status_code} {r.headers.get('content-type')} {len(r.text)} chars")
-        log("   ", r.text[:300].replace("\n", " "))
+        r = requests.get(BASE + path, headers=H, timeout=60)
     except Exception as e:
-        log(f"GET {u} -> ERROR {e}")
-
-log("\n== 2. Guessed athlete search API (POST) ==")
-body = {"name": "", "status": "", "gender": ["F"], "weapon": ["S"], "type": ["I"],
-        "country": "SGP", "level": "S", "isNational": False, "fetchPage": 1}
-for u in ["https://fie.org/athletes", "https://fie.org/athletes/search"]:
-    try:
-        r = requests.post(u, json=body, headers={**H, "Accept": "application/json"}, timeout=30)
-        log(f"POST {u} -> {r.status_code} {r.headers.get('content-type')} {len(r.text)} chars")
-        log("   ", r.text[:600].replace("\n", " "))
-    except Exception as e:
-        log(f"POST {u} -> ERROR {e}")
-
-log("\n== 3. Real browser: record every data request the page makes ==")
-try:
-    from playwright.sync_api import sync_playwright
-    with sync_playwright() as p:
-        b = p.chromium.launch()
-        pg = b.new_page(user_agent=UA, viewport={"width": 1280, "height": 900})
-        seen = []
-        def on_resp(r):
-            ct = r.headers.get("content-type", "")
-            if r.request.resource_type in ("xhr", "fetch") or "json" in ct:
-                try: txt = r.text()[:700].replace("\n", " ")
-                except Exception: txt = "(unreadable)"
-                seen.append((r.request.method, r.url, r.status, ct, txt, (r.request.post_data or "")[:300]))
-        pg.on("response", on_resp)
-        for u in ["https://fie.org/athletes", "https://fie.org/athletes?country=SGP"]:
-            try:
-                pg.goto(u, wait_until="networkidle", timeout=60000)
-                pg.wait_for_timeout(3000)
-                log(f"PAGE {u} title={pg.title()!r}")
-                log("   text:", pg.inner_text("body")[:700].replace("\n", " | "))
-                links = pg.eval_on_selector_all("a[href*='athlete']", "e=>e.slice(0,15).map(a=>a.href+' '+a.innerText.trim().slice(0,40))")
-                for l in links: log("   link:", l)
-                pg.screenshot(path="fie_page.png")
-            except Exception as e:
-                log(f"PAGE {u} -> ERROR {e}")
-        log(f"\n{len(seen)} data requests seen:")
-        for m, u, s, ct, txt, post in seen:
-            log(f"- {m} {u} -> {s} {ct}")
-            if post: log("    body:", post)
-            log("    resp:", txt)
-        b.close()
-except Exception as e:
-    log("Playwright step failed:", e)
-
+        log("ERROR", e); continue
+    t = r.text
+    log("status", r.status_code, "chars", len(t))
+    m = re.search(r'<script[^>]*id="__NUXT_DATA__"[^>]*>(.*?)</script>', t, re.S)
+    log("NUXT_DATA present:", bool(m), "len", len(m.group(1)) if m else 0)
+    if m:
+        d = m.group(1)
+        log("NUXT_DATA start:", d[:2500])
+        sg = [x.start() for x in re.finditer(r'SGP', d)]
+        log("SGP occurrences in data:", len(sg))
+        for i in sg[:4]:
+            log("  ...", d[max(0, i-250): i+250].replace("\n", " "))
+    links = re.findall(r'href="(/athletes/\d+)"[^>]*>(.*?)</a>', t, re.S)
+    log("athlete links in HTML:", len(links))
+    for h, tx in links[:12]:
+        log("  ", h, re.sub(r"<[^>]+>", " ", tx).strip()[:60])
+    body = re.sub(r"<script.*?</script>|<style.*?</style>", " ", t, flags=re.S)
+    body = re.sub(r"<[^>]+>", " | ", body)
+    body = re.sub(r"\s+", " ", body)
+    log("visible text:", body[:1200])
 open("fie_probe.txt", "w").write("\n".join(out))
