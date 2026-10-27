@@ -32,17 +32,23 @@ jobs:
       - name: Fetch rankings
         run: python scrape.py
 
+      - name: Match fencers to FIE world rankings (a failure here never stops the site)
+        run: python fie_sync.py
+        continue-on-error: true
+
       - name: Save data.json to the repo (git history = your archive)
         run: |
           git config user.name "rankings-bot"
           git config user.email "rankings-bot@users.noreply.github.com"
           git add data.json history.json profiles.json competitions.json
+          git add fie.json fie_review.txt 2>/dev/null || true
           git diff --cached --quiet || (git commit -m "Update rankings $(date -u +%F)" && git push)
 
       - name: Build site folder
         run: |
           mkdir site
           cp index.html rankings.html data.json history.json profiles.json competitions.json site/
+          [ -f fie.json ] && cp fie.json site/ || echo "::warning::No fie.json, so the site is built without FIE world rankings"
           if [ -f logo.jpg ]; then cp logo.jpg site/logo.jpg
           elif [ -f Logo.jpg ]; then cp Logo.jpg site/logo.jpg
           else echo "::warning::No logo.jpg or Logo.jpg in the repo root, so the site is built without the logo"; fi
