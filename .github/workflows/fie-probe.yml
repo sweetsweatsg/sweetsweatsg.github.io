@@ -1,1 +1,24 @@
+name: FIE probe (one-off test)
 
+on:
+  workflow_dispatch:   # run by hand only; never runs on a schedule
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests playwright
+      - run: playwright install --with-deps chromium
+      - name: Probe fie.org
+        run: python fie_probe.py
+        continue-on-error: true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fie-probe-result
+          path: |
+            fie_probe.txt
+            fie_page.png
