@@ -5,7 +5,7 @@ sabre men senior: 742 fencers ranked, 11 from Singapore
 sabre men junior: 552 fencers ranked, 14 from Singapore
 sabre men cadet: 210 fencers ranked, 3 from Singapore
 foil women senior: 662 fencers ranked, 12 from Singapore
-foil women junior: 485 fencers ranked, 16 from Singapore
+foil women junior: 510 fencers ranked, 17 from Singapore
 foil women cadet: 217 fencers ranked, 7 from Singapore
 foil men senior: 861 fencers ranked, 16 from Singapore
 foil men junior: 587 fencers ranked, 14 from Singapore
@@ -103,13 +103,13 @@ foil-men-733: Lee Thaddaeus Ted  ->  LEE Thaddaeus Ted (FIE 60380)  auto  ranks 
 foil-men-747: Lim Shawn  ->  LIM Shawn (FIE 63534)  auto  ranks {'S': [755, 0.0, 861]}
 foil-men-840: Lee Jovan Kai Wen  ->  LEE JOVAN KAI WEN (FIE 66777)  auto  ranks {'S': [737, 0.0, 861], 'J': [218, 4.0, 587]}
 foil-men-956: Tan Matthew Kai Chen  ->  TAN Matthew Kai Chen (FIE 70984)  auto  ranks {'J': [539, 0.0, 587], 'C': [158, 1.0, 218]}
-foil-women-1364: Zhang Linao  ->  ZHANG Linao (FIE 71206)  auto  ranks {'C': [185, 0.0, 217]}
-foil-women-1366: Lu Ke Chen  ->  LU Ke Chen (FIE 69559)  auto  ranks {'J': [256, 2.0, 485], 'C': [64, 9.0, 217]}
-foil-women-1369: Liu Yihan  ->  LIU Yihan (FIE 63557)  auto  ranks {'J': [246, 2.0, 485], 'C': [121, 4.0, 217]}
-foil-women-1372: Ng Anya  ->  NG Anya (FIE 66308)  auto  ranks {'J': [477, 0.0, 485], 'C': [143, 2.0, 217]}
-foil-women-1424: Sheng Chuxi  ->  SHENG Chuxi (FIE 63559)  auto  ranks {'J': [256, 2.0, 485]}
-foil-women-1493: Chen Hillary Leyou  ->  CHEN Hillary Leyou (FIE 70988)  auto  ranks {'J': [409, 0.0, 485], 'C': [190, 0.0, 217]}
-foil-women-1646: Xia Zixin  ->  XIA Zixin (FIE 70989)  auto  ranks {'J': [459, 0.0, 485], 'C': [195, 0.0, 217]}
+foil-women-1364: Zhang Linao  ->  ZHANG Linao (FIE 71206)  auto  ranks {'J': [427, 0.0, 510], 'C': [185, 0.0, 217]}
+foil-women-1366: Lu Ke Chen  ->  LU Ke Chen (FIE 69559)  auto  ranks {'J': [271, 2.0, 510], 'C': [64, 9.0, 217]}
+foil-women-1369: Liu Yihan  ->  LIU Yihan (FIE 63557)  auto  ranks {'J': [260, 2.0, 510], 'C': [121, 4.0, 217]}
+foil-women-1372: Ng Anya  ->  NG Anya (FIE 66308)  auto  ranks {'J': [502, 0.0, 510], 'C': [143, 2.0, 217]}
+foil-women-1424: Sheng Chuxi  ->  SHENG Chuxi (FIE 63559)  auto  ranks {'J': [271, 2.0, 510]}
+foil-women-1493: Chen Hillary Leyou  ->  CHEN Hillary Leyou (FIE 70988)  auto  ranks {'J': [442, 0.0, 510], 'C': [190, 0.0, 217]}
+foil-women-1646: Xia Zixin  ->  XIA Zixin (FIE 70989)  auto  ranks {'J': [488, 0.0, 510], 'C': [195, 0.0, 217]}
 foil-women-374: Berthier Amita Nicole  ->  BERTHIER Amita (FIE 33614)  auto  ranks {'S': [67, 23.5, 662]}
 foil-women-379: Cheung Kemei  ->  CHEUNG Kemei (FIE 49970)  auto  ranks {'S': [84, 19.0, 662]}
 foil-women-386: Huang Melanie Xinyi  ->  HUANG Melanie Xinyi (FIE 38911)  auto  ranks {'S': [605, 0.0, 662]}
@@ -117,16 +117,16 @@ foil-women-399: Ng Chloe Wanyi  ->  NG Chloe Wanyi (FIE 48972)  auto  ranks {'S'
 foil-women-406: Seet Tiffany He Yun  ->  SEET Tiffany (FIE 51377)  auto  ranks {'S': [635, 0.0, 662]}
 foil-women-418: Wong Maxine Jie Xin  ->  WONG Maxine Jie Xin (FIE 33825)  auto  ranks {'S': [82, 20.0, 662]}
 foil-women-420: Wong Tatiana Yu Rong  ->  WONG Tatiana Yu Rong (FIE 33609)  auto  ranks {'S': [407, 0.375, 662]}
-foil-women-532: Mohammad Fadly Nabihah Raiedah Binte  ->  MOHAMMAD FADLY Nabihah Raiedah (FIE 54916)  auto  ranks {'S': [199, 5.125, 662], 'J': [48, 23.0, 485]}
-foil-women-533: Soh Trina  ->  SOH Trina (FIE 57014)  auto  ranks {'J': [406, 0.0, 485]}
-foil-women-594: Tang Daniella Weng Yan  ->  TANG Daniella Weng Yan (FIE 53446)  auto  ranks {'S': [308, 1.5, 662], 'J': [15, 45.5, 485]}
-foil-women-595: Lee Stephanie Tingyi  ->  LEE Stephanie Tingyi (FIE 57125)  auto  ranks {'S': [261, 2.375, 662], 'J': [121, 8.0, 485]}
-foil-women-599: Sita Naidu Maaravis  ->  SITA NAIDU Maaravis (FIE 57056)  auto  ranks {'J': [310, 0.5, 485]}
-foil-women-600: Koh Gianna Shao Yuan  ->  KOH Shao Yuan Gianna (FIE 57055)  auto  ranks {'J': [298, 0.5, 485]}
-foil-women-735: Wong Angellena Yan Qi  ->  WONG Angellena Yan Qi (FIE 56878)  auto  ranks {'S': [534, 0.0, 662], 'J': [68, 17.5, 485]}
-foil-women-852: Lam Xin Ying  ->  LAM Xin Ying (FIE 63547)  auto  ranks {'S': [405, 0.375, 662], 'J': [234, 2.0, 485]}
-foil-women-897: Tan Alyssa Si En  ->  TAN Alyssa Si En (FIE 60383)  auto  ranks {'J': [241, 2.0, 485]}
-foil-women-998: Cheng Cleona Yu Han  ->  CHENG Cleona Yu Han (FIE 61117)  auto  ranks {'J': [164, 4.5, 485], 'C': [12, 37.0, 217]}
+foil-women-532: Mohammad Fadly Nabihah Raiedah Binte  ->  MOHAMMAD FADLY Nabihah Raiedah (FIE 54916)  auto  ranks {'S': [199, 5.125, 662], 'J': [55, 23.0, 510]}
+foil-women-533: Soh Trina  ->  SOH Trina (FIE 57014)  auto  ranks {'J': [439, 0.0, 510]}
+foil-women-594: Tang Daniella Weng Yan  ->  TANG Daniella Weng Yan (FIE 53446)  auto  ranks {'S': [308, 1.5, 662], 'J': [16, 45.5, 510]}
+foil-women-595: Lee Stephanie Tingyi  ->  LEE Stephanie Tingyi (FIE 57125)  auto  ranks {'S': [261, 2.375, 662], 'J': [128, 8.0, 510]}
+foil-women-599: Sita Naidu Maaravis  ->  SITA NAIDU Maaravis (FIE 57056)  auto  ranks {'J': [330, 0.5, 510]}
+foil-women-600: Koh Gianna Shao Yuan  ->  KOH Shao Yuan Gianna (FIE 57055)  auto  ranks {'J': [321, 0.5, 510]}
+foil-women-735: Wong Angellena Yan Qi  ->  WONG Angellena Yan Qi (FIE 56878)  auto  ranks {'S': [534, 0.0, 662], 'J': [68, 18.5, 510]}
+foil-women-852: Lam Xin Ying  ->  LAM Xin Ying (FIE 63547)  auto  ranks {'S': [405, 0.375, 662], 'J': [249, 2.0, 510]}
+foil-women-897: Tan Alyssa Si En  ->  TAN Alyssa Si En (FIE 60383)  auto  ranks {'J': [255, 2.0, 510]}
+foil-women-998: Cheng Cleona Yu Han  ->  CHENG Cleona Yu Han (FIE 61117)  auto  ranks {'J': [177, 4.5, 510], 'C': [12, 37.0, 217]}
 sabre-men-1046: Lian Marcus Kang Jing  ->  LIAN Kang Jing Marcus (FIE 64098)  auto  ranks {'J': [373, 0.25, 552]}
 sabre-men-1047: Koh Benjamin Wei Zhe  ->  KOH Benjamin Wei Zhe (FIE 65017)  auto  ranks {'S': [462, 0.5, 742], 'J': [170, 5.5, 552]}
 sabre-men-1048: Soliano Cameron Alexander Tan  ->  SOLIANO Cameron Alexander Tan (FIE 64034)  auto  ranks {'J': [297, 1.5, 552], 'C': [74, 6.5, 210]}
@@ -222,8 +222,8 @@ sabre-men-1045: Poom Palakawongse Na Ayutthaya (SMU)
 sabre-men-224: Dan Wei Zuo ()
 sabre-men-1307: Quah Eleazar Yu Ze ()
 sabre-men-248: Lim Emmanuel Ern (ASG)
-sabre-men-1049: Wong Keagan Zhi Xian (ABF)
 sabre-men-844: Lee Dylan Jia Cheng (HAN)
+sabre-men-1049: Wong Keagan Zhi Xian (ABF)
 sabre-men-219: Chew Jun Chen (CFF)
 sabre-men-1315: Tan Elijah En Jie ()
 sabre-men-1303: Rajentheran Kai Seah (BLD)
