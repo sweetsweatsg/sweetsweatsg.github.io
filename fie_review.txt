@@ -1,6 +1,6 @@
 sabre women senior: 551 fencers ranked, 10 from Singapore
 sabre women junior: 494 fencers ranked, 12 from Singapore
-sabre women cadet: 268 fencers ranked, 8 from Singapore
+sabre women cadet: 267 fencers ranked, 8 from Singapore
 sabre men senior: 723 fencers ranked, 11 from Singapore
 sabre men junior: 576 fencers ranked, 14 from Singapore
 sabre men cadet: 275 fencers ranked, 12 from Singapore
@@ -149,13 +149,13 @@ sabre-men-775: Ooi Shane Jun Ming  ->  OOI Shane Jun Ming (FIE 60893)  auto  ran
 sabre-men-868: Ng Luke Jun Ming  ->  NG LUKE (FIE 67922)  auto  ranks {'J': [533, 0.0, 576]}
 sabre-men-904: Auw Ashton Sen Hon  ->  AUW Ashton Sen Hon (FIE 64033)  auto  ranks {'S': [309, 2.0, 723], 'J': [121, 9.5, 576]}
 sabre-men-959: Yong Leonard  ->  YONG  Leonard (FIE 67948)  auto  ranks {'J': [528, 0.0, 576]}
-sabre-women-1124: Wu Evanna  ->  WU Evanna (FIE 65026)  auto  ranks {'J': [372, 0.25, 494], 'C': [142, 2.0, 268]}
-sabre-women-1383: Fong Wan Tong Kylivian  ->  FONG Wan Tong Kylivian (FIE 71405)  auto  ranks {'J': [487, 0.0, 494], 'C': [195, 0.5, 268]}
-sabre-women-1384: Loh Zyenn Zhi En  ->  LOH Zhi En Zyenn (FIE 71404)  auto  ranks {'J': [491, 0.0, 494], 'C': [250, 0.0, 268]}
-sabre-women-1393: Tay Natalie  ->  TAY Natalie (FIE 71384)  auto  ranks {'J': [490, 0.0, 494], 'C': [184, 1.0, 268]}
-sabre-women-1650: Huang Jiyun  ->  HUANG JIYUN (FIE 67357)  auto  ranks {'S': [354, 0.5, 551], 'J': [259, 2.0, 494], 'C': [91, 6.0, 268]}
-sabre-women-1651: Huang Jiwon  ->  HUANG JIWON (FIE 67356)  auto  ranks {'S': [344, 0.5, 551], 'J': [467, 0.0, 494], 'C': [161, 2.0, 268]}
-sabre-women-1652: Muhammed Hafiz Hannah Isabella Binte  ->  MUHAMMED HAFIZ Hannah Isabella Binte (FIE 71383)  auto  ranks {'J': [481, 0.0, 494], 'C': [169, 1.0, 268]}
+sabre-women-1124: Wu Evanna  ->  WU Evanna (FIE 65026)  auto  ranks {'J': [372, 0.25, 494], 'C': [142, 2.0, 267]}
+sabre-women-1383: Fong Wan Tong Kylivian  ->  FONG Wan Tong Kylivian (FIE 71405)  auto  ranks {'J': [487, 0.0, 494], 'C': [195, 0.5, 267]}
+sabre-women-1384: Loh Zyenn Zhi En  ->  LOH Zhi En Zyenn (FIE 71404)  auto  ranks {'J': [491, 0.0, 494], 'C': [250, 0.0, 267]}
+sabre-women-1393: Tay Natalie  ->  TAY Natalie (FIE 71384)  auto  ranks {'J': [490, 0.0, 494], 'C': [184, 1.0, 267]}
+sabre-women-1650: Huang Jiyun  ->  HUANG JIYUN (FIE 67357)  auto  ranks {'S': [354, 0.5, 551], 'J': [259, 2.0, 494], 'C': [91, 6.0, 267]}
+sabre-women-1651: Huang Jiwon  ->  HUANG JIWON (FIE 67356)  auto  ranks {'S': [344, 0.5, 551], 'J': [467, 0.0, 494], 'C': [161, 2.0, 267]}
+sabre-women-1652: Muhammed Hafiz Hannah Isabella Binte  ->  MUHAMMED HAFIZ Hannah Isabella Binte (FIE 71383)  auto  ranks {'J': [481, 0.0, 494], 'C': [169, 1.0, 267]}
 sabre-women-349: Siva Kumar Thhivya Ashti  ->  SIVA KUMAR Thhivya Ashti (FIE 43147)  auto  ranks {'S': [197, 5.25, 551]}
 sabre-women-433: Heng Juliet Jie Min  ->  HENG Juliet Jie Min (FIE 51785)  auto  ranks {'S': [49, 34.5, 551]}
 sabre-women-468: Tan Christine Kai Li  ->  TAN Kai Li Christine (FIE 43840)  auto  ranks {'S': [300, 1.0, 551]}
@@ -164,7 +164,7 @@ sabre-women-539: Lim Jae Jia En  ->  LIM Jae Jia En (FIE 57701)  auto  ranks {'S
 sabre-women-542: Chan Natallie Yin Xin  ->  CHAN Natallie Yin Xin (FIE 57702)  auto  ranks {'S': [259, 2.0, 551], 'J': [134, 8.0, 494]}
 sabre-women-603: Quah Jaida Hao Xun  ->  QUAH Jaida Hao Xun (FIE 57703)  auto  ranks {'S': [299, 1.0, 551], 'J': [118, 9.0, 494]}
 sabre-women-932: Koh Sarah Ya Qi  ->  KOH Sarah Ya Qi (FIE 64035)  auto  ranks {'S': [260, 2.0, 551], 'J': [120, 8.5, 494]}
-sabre-women-985: Wong Nicki En Zhi  ->  WONG Nicki En Zhi (FIE 62429)  auto  ranks {'J': [365, 0.25, 494], 'C': [92, 6.0, 268]}
+sabre-women-985: Wong Nicki En Zhi  ->  WONG Nicki En Zhi (FIE 62429)  auto  ranks {'J': [365, 0.25, 494], 'C': [92, 6.0, 267]}
 
 === NEEDS REVIEW (possible matches, not used) ===
 foil-men-1503: Ng Tristan  ?  TANG Tristan (FIE 60324, score 0.773)
@@ -229,8 +229,8 @@ sabre-men-219: Chew Jun Chen (CFF)
 sabre-men-1046: Lian Marcus Kang Jing (GLA)
 sabre-men-1600: Tan Linus Wei Hong (SSP)
 sabre-men-272: Saharudin Ahmad Huzaifah Bin (CFF)
-sabre-men-601: Tan Julius Xuan Lin (ASG)
 sabre-men-1116: Tan Gilbert Hong Hao (ASG)
+sabre-men-601: Tan Julius Xuan Lin (ASG)
 sabre-men-1502: Chen Xingji (ASG)
 sabre-men-657: Loke Justin (GLA)
 sabre-men-574: Ong Chuan Hua ()
@@ -294,8 +294,8 @@ foil-women-533: Soh Trina (ABF)
 foil-women-479: Yeo Jazlyn Siok Chin (SPA)
 foil-women-1525: Dorsey Jenny (IFS)
 foil-women-1368: Rajic Ariella Ivania (IFS)
-foil-women-1647: Koh Yu Yi (ABF)
 foil-women-1371: Chua Alexis En Jie (ZFF)
+foil-women-1647: Koh Yu Yi (ABF)
 foil-women-1620: Koh Summer Meiying (BLD)
 foil-women-740: Lorene Delhoume (BLD)
 foil-women-1466: Zhu Taile (ZFF)
@@ -433,10 +433,10 @@ epee-women-1339: Onn Megan Yun Xin (SGF)
 epee-women-530: Yeo Janelle (SPA)
 epee-women-1825: Liew Yan Yu (DPF)
 epee-women-744: Vasanasomsithi Pacharaporn ()
-epee-women-697: See Toh Nathlie Li Shan (SGF)
 epee-women-963: Kuek Lecia (SPF)
 epee-women-810: Tan Kyra Li Yi ()
 epee-women-1824: Liaw Cheri (DPF)
+epee-women-697: See Toh Nathlie Li Shan (SGF)
 epee-women-615: Tan Mikaela Kai Xin (IFS)
 epee-women-1122: Goh Xin Ze (CFF)
 epee-women-1341: Eswaran Ember Jermaine ()
@@ -455,8 +455,8 @@ epee-women-1329: Heng Kaelyn (CFF)
 epee-women-1037: Wu Haidi (WIS)
 epee-women-1755: Er Shayne (BLD)
 epee-women-1722: Li Feile (BLD)
-epee-women-1711: Tan Natalie Zhehao (BLD)
 epee-women-1332: Ong Rui Xuan ()
+epee-women-1711: Tan Natalie Zhehao (BLD)
 epee-women-1368: Rajic Ariella Ivania (IFS)
 epee-women-1372: Ng Anya (ZFF)
 epee-women-1760: Liu Xinyu ()
@@ -464,11 +464,11 @@ epee-women-1623: Quek Kaleigh Boon Sin (SGF)
 epee-women-1481: Tang Kellyn Hoi Lyn ()
 epee-women-1756: See Zervelle Xin Lin ()
 epee-women-1359: Poon Gracie Xin Ru (CAP)
-epee-women-1626: Chong Quiness Jun Le (SGF)
 epee-women-1637: Sivaraman Danyasri (BLD)
-epee-women-1334: Liow Yen Ly ()
-epee-women-1346: Wong Giselle Zi Xuan (SGF)
+epee-women-1626: Chong Quiness Jun Le (SGF)
 epee-women-1710: Wang Amber Qian (BLD)
+epee-women-1346: Wong Giselle Zi Xuan (SGF)
+epee-women-1334: Liow Yen Ly ()
 epee-women-1621: Lee Kirsten Xin Ying ()
 epee-women-1666: Zaccheus Divya Eva (IFS)
 epee-women-1328: Tan Yoke Teng ()
